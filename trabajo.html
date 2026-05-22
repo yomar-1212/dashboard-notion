@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trabajo — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FAFCFF;--bg2:#EEF4FF;--bg3:#DCE9FF;
+  --text:#1a1f36;--text2:#3d5166;--text3:#8aa0b8;
+  --border:rgba(2,136,209,0.12);--border2:rgba(2,136,209,0.25);
+  --r:8px;--rl:14px;
+  --blue:#0288D1;--blue-bg:#E1F5FE;--blue-dk:#01579B;--blue-lt:#29B6F6;
+  --navy:#01579B;--navy-bg:#E3F2FD;--navy-dk:#003c6e;
+  --orange:#FF6D00;--orange-bg:#FFF3E0;--orange-dk:#E65100;--orange-lt:#FF9100;
+  --amber:#FFB300;--amber-bg:#FFF8E1;--amber-dk:#FF6F00;
+  --green:#00897B;--green-bg:#E0F2F1;--green-dk:#004D40;
+  --red:#E53935;--red-bg:#FFEBEE;--red-dk:#B71C1C;
+  --gold:#FF8F00;--gold-bg:#FFF8E1;--gold-dk:#E65100;
+  --purple:#5E35B1;--purple-bg:#EDE7F6;--purple-dk:#311B92;
+  --cyan:#0288D1;--cyan-bg:#E1F5FE;--cyan-dk:#01579B;
+  --indigo:#1565C0;--indigo-bg:#E3F2FD;--indigo-dk:#003c6e;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Jost',-apple-system,sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+.shell{max-width:1000px;margin:0 auto;padding:0 24px 60px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 0 16px;border-bottom:1px solid var(--border2);margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.back-link{font-size:11px;color:var(--text2);text-decoration:none;letter-spacing:.4px}
+.back-link:hover{color:var(--orange)}
+.app-title{font-family:var(--serif);font-size:24px;font-weight:700;color:var(--text)}
+.app-sub{font-size:11px;color:var(--text2);letter-spacing:.3px;margin-top:2px}
+.nav{display:flex;border-bottom:1px solid var(--border2);margin-bottom:24px;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{padding:9px 16px;border:none;background:none;font-size:12px;font-family:var(--sans);color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;letter-spacing:.3px}
+.nav-btn.active{color:var(--orange);border-bottom-color:var(--orange);font-weight:500}
+.nav-btn:hover{color:var(--orange)}
+.page{display:none}.page.on{display:block}
+ 
+/* SHARED */
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:20px;margin-bottom:14px}
+.card-title{font-family:var(--serif);font-size:16px;font-weight:600;color:var(--text);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.form-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.form-row input,.form-row select,.form-row textarea{flex:1;min-width:150px;height:36px;border:1px solid var(--border2);border-radius:var(--r);padding:0 12px;font-size:12px;font-family:var(--sans);background:var(--bg);color:var(--text)}
+.form-row input:focus,.form-row select:focus{outline:none;border-color:var(--orange)}
+.btn-add{height:36px;padding:0 18px;background:var(--orange-bg);color:var(--orange-dk);border:none;border-radius:var(--r);font-size:12px;font-weight:500;font-family:var(--sans);cursor:pointer;white-space:nowrap}
+.btn-add:hover{opacity:.85}
+.btn-add.green{background:var(--green-bg);color:var(--green-dk)}
+.btn-add.gold{background:var(--gold-bg);color:var(--gold-dk)}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:500}
+.tag.alta{background:var(--red-bg);color:var(--red-dk)}.tag.media{background:var(--gold-bg);color:var(--gold-dk)}.tag.baja{background:var(--green-bg);color:var(--green-dk)}
+.empty{text-align:center;padding:32px;color:var(--text3);font-size:12px}
+.xbtn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:2px 6px;border-radius:4px}
+.xbtn:hover{color:var(--red);background:var(--red-bg)}
+ 
+/* TODO */
+.todo-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.todo-item:last-child{border-bottom:none}
+.todo-cb{width:16px;height:16px;border:2px solid var(--border2);border-radius:3px;cursor:pointer;flex-shrink:0;accent-color:var(--blue)}
+.todo-text{flex:1;font-size:13px;color:var(--text)}
+.todo-text.done{text-decoration:line-through;color:var(--text3)}
+.todo-meta{font-size:10px;color:var(--text3)}
+ 
+/* CALENDAR */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:16px}
+.cal-header{font-size:9px;text-align:center;padding:6px 0;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+.cal-day{min-height:52px;border:1px solid var(--border);border-radius:4px;padding:4px;background:var(--bg);font-size:10px;position:relative;cursor:pointer;transition:background .15s}
+.cal-day:hover{background:var(--blue-bg)}
+.cal-day.today{border-color:var(--orange);background:var(--orange-bg)}
+.cal-day.other-month{opacity:.4}
+.cal-num{font-size:11px;font-weight:500;color:var(--text2);margin-bottom:2px}
+.cal-day.today .cal-num{color:var(--orange);font-weight:700}
+.cal-dot{width:5px;height:5px;border-radius:50%;background:var(--blue);display:inline-block;margin:1px}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-nav-btn{background:none;border:1px solid var(--border2);border-radius:var(--r);padding:5px 12px;font-size:12px;font-family:var(--sans);color:var(--text2);cursor:pointer}
+.cal-nav-btn:hover{background:var(--bg2)}
+.cal-month-title{font-family:var(--serif);font-size:15px;font-weight:600}
+ 
+/* EVENT FORM */
+.ev-badge{display:inline-flex;align-items:center;gap:4px;background:var(--blue-bg);color:var(--blue-dk);padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;margin:3px 2px}
+.ev-badge.importante{background:var(--red-bg);color:var(--red-dk)}
+.ev-badge.recordatorio{background:var(--gold-bg);color:var(--gold-dk)}
+.ev-badge.entrega{background:var(--green-bg);color:var(--green-dk)}
+ 
+/* NOTES */
+.note-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.note-title{font-weight:500;font-size:13px;margin-bottom:6px;color:var(--text)}
+.note-body{font-size:12px;color:var(--text2);line-height:1.6;white-space:pre-wrap}
+.note-date{font-size:10px;color:var(--text3);margin-top:6px}
+ 
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:var(--bg2);border-radius:var(--r);padding:15px 16px;border:1px solid var(--border)}
+.kpi-label{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;font-weight:500}
+.kpi-val{font-family:var(--serif);font-size:20px;font-weight:600;color:var(--text)}
+.kpi-val.b{color:var(--blue)}.kpi-val.g{color:var(--green)}.kpi-val.r{color:var(--red)}
+ 
+@media(max-width:600px){.shell{padding:0 14px 40px}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+ 
+<div class="topbar">
+  <a class="back-link" href="hub.html">← Volver al Hub</a>
+  <div>
+    <div class="app-title">Trabajo</div>
+    <div class="app-sub" id="cur-date"></div>
+  </div>
+  <div></div>
+</div>
+ 
+<div class="nav">
+  <button class="nav-btn active" onclick="goPage('dashboard',this)">Dashboard</button>
+  <button class="nav-btn" onclick="goPage('todohoy',this)">To-Do Hoy</button>
+  <button class="nav-btn" onclick="goPage('tareas',this)">Tareas Pendientes</button>
+  <button class="nav-btn" onclick="goPage('calendario',this)">Calendario</button>
+  <button class="nav-btn" onclick="goPage('apuntes',this)">Apuntes</button>
+</div>
+ 
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page on">
+  <div class="kpi-row" id="dash-kpi"></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">📋 Pendientes de hoy</div>
+      <div id="dash-today-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔴 Tareas de alta prioridad</div>
+      <div id="dash-high-list"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📅 Próximos eventos</div>
+    <div id="dash-events"></div>
+  </div>
+</div>
+ 
+<!-- TODO HOY -->
+<div id="page-todohoy" class="page">
+  <div class="card">
+    <div class="card-title">
+      <span>To-Do del Día</span>
+      <span id="today-date-label" style="font-size:12px;font-weight:400;color:var(--text2)"></span>
+    </div>
+    <div class="form-row">
+      <input type="text" id="td-texto" placeholder="Nueva tarea para hoy..." onkeypress="if(event.key==='Enter')addTodoHoy()">
+      <select id="td-hora">
+        <option value="">Sin hora</option>
+        <option>07:00</option><option>08:00</option><option>09:00</option><option>10:00</option>
+        <option>11:00</option><option>12:00</option><option>13:00</option><option>14:00</option>
+        <option>15:00</option><option>16:00</option><option>17:00</option><option>18:00</option>
+        <option>19:00</option><option>20:00</option>
+      </select>
+      <select id="td-prior">
+        <option value="media">Media</option>
+        <option value="alta">Alta</option>
+        <option value="baja">Baja</option>
+      </select>
+      <button class="btn-add" onclick="addTodoHoy()">+ Agregar</button>
+    </div>
+    <div id="todo-hoy-list"></div>
+  </div>
+</div>
+ 
+<!-- TAREAS -->
+<div id="page-tareas" class="page">
+  <div class="card">
+    <div class="card-title">Tareas Pendientes</div>
+    <div class="form-row">
+      <input type="text" id="t-titulo" placeholder="Título de la tarea...">
+      <input type="date" id="t-fecha">
+      <select id="t-prior">
+        <option value="media">Media</option>
+        <option value="alta">Alta</option>
+        <option value="baja">Baja</option>
+      </select>
+      <select id="t-cat">
+        <option>General</option><option>Cliente</option><option>Admin</option><option>Reunión</option><option>Entrega</option>
+      </select>
+      <button class="btn-add" onclick="addTarea()">+ Agregar</button>
+    </div>
+    <div id="t-pendientes" style="margin-bottom:20px"></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      <span style="font-family:var(--serif);font-size:14px;font-style:italic;color:var(--text2)">Completadas</span>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+    </div>
+    <div id="t-completadas" style="opacity:.6"></div>
+  </div>
+</div>
+ 
+<!-- CALENDARIO -->
+<div id="page-calendario" class="page">
+  <div class="grid2">
+    <div class="card">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+        <span class="cal-month-title" id="cal-title"></span>
+        <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-header">Dom</div><div class="cal-header">Lun</div><div class="cal-header">Mar</div>
+        <div class="cal-header">Mié</div><div class="cal-header">Jue</div><div class="cal-header">Vie</div><div class="cal-header">Sáb</div>
+      </div>
+      <div class="cal-grid" id="cal-days"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Agregar Evento / Fecha Importante</div>
+      <div class="form-row">
+        <input type="date" id="ev-fecha">
+      </div>
+      <div class="form-row">
+        <input type="text" id="ev-titulo" placeholder="Título del evento...">
+      </div>
+      <div class="form-row">
+        <select id="ev-tipo">
+          <option value="reunion">Reunión</option>
+          <option value="entrega">Entrega</option>
+          <option value="importante">Importante</option>
+          <option value="recordatorio">Recordatorio</option>
+        </select>
+        <button class="btn-add" onclick="addEvento()">+ Agregar</button>
+      </div>
+      <div id="ev-selected-day" style="margin-top:12px;font-family:var(--serif);font-size:13px;font-style:italic;color:var(--text2)"></div>
+      <div id="ev-list"></div>
+    </div>
+  </div>
+</div>
+ 
+<!-- APUNTES -->
+<div id="page-apuntes" class="page">
+  <div class="card">
+    <div class="card-title">Nuevo Apunte o Avance</div>
+    <div class="form-row">
+      <input type="text" id="n-titulo" placeholder="Título del apunte...">
+      <select id="n-cat">
+        <option>General</option><option>Reunión</option><option>Idea</option><option>Avance</option><option>Aprendizaje</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <textarea id="n-cuerpo" placeholder="Escribe aquí tu apunte o avance..." style="flex:1;min-width:100%;height:80px;border:1px solid var(--border2);border-radius:var(--r);padding:10px 12px;font-size:12px;font-family:var(--sans);background:var(--bg);color:var(--text);resize:vertical"></textarea>
+    </div>
+    <button class="btn-add green" onclick="addNota()">Guardar apunte</button>
+  </div>
+  <div id="notas-list"></div>
+</div>
+ 
+</div>
+<script>
+let todosHoy=[],tareas=[],eventos=[],notas=[];
+try{todosHoy=JSON.parse(localStorage.getItem('tr_th')||'[]')}catch(e){}
+try{tareas=JSON.parse(localStorage.getItem('tr_ta')||'[]')}catch(e){}
+try{eventos=JSON.parse(localStorage.getItem('tr_ev')||'[]')}catch(e){}
+try{notas=JSON.parse(localStorage.getItem('tr_no')||'[]')}catch(e){}
+ 
+function persist(){
+  localStorage.setItem('tr_th',JSON.stringify(todosHoy));
+  localStorage.setItem('tr_ta',JSON.stringify(tareas));
+  localStorage.setItem('tr_ev',JSON.stringify(eventos));
+  localStorage.setItem('tr_no',JSON.stringify(notas));
+}
+ 
+const today=()=>new Date().toISOString().slice(0,10);
+const fmt_date=d=>new Date(d+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'});
+ 
+document.getElementById('cur-date').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('today-date-label').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
+if(document.getElementById('ev-fecha'))document.getElementById('ev-fecha').value=today();
+ 
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
+ 
+function goPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('on');
+  btn.classList.add('active');
+  if(id==='todohoy')renderTodoHoy();
+  if(id==='tareas')renderTareas();
+  if(id==='calendario')renderCal();
+  if(id==='apuntes')renderNotas();
+  if(id==='dashboard')renderDashboard();
+}
+ 
+function renderDashboard(){
+  const todayStr=today();
+  const hoyItems=todosHoy.filter(t=>!t.done);
+  const pendTotal=tareas.filter(t=>!t.done).length;
+  const doneTotal=tareas.filter(t=>t.done).length;
+  const eventosFuturos=eventos.filter(e=>e.fecha>=todayStr).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  
+  document.getElementById('dash-kpi').innerHTML=`
+    <div class="kpi"><div class="kpi-label">Tareas hoy</div><div class="kpi-val b">${hoyItems.length}</div></div>
+    <div class="kpi"><div class="kpi-label">Pendientes</div><div class="kpi-val r">${pendTotal}</div></div>
+    <div class="kpi"><div class="kpi-label">Completadas</div><div class="kpi-val g">${doneTotal}</div></div>
+    <div class="kpi"><div class="kpi-label">Próximos eventos</div><div class="kpi-val">${eventosFuturos.length}</div></div>
+  `;
+  
+  document.getElementById('dash-today-list').innerHTML=hoyItems.length?hoyItems.slice(0,5).map(t=>`
+    <div class="todo-item">
+      <span class="todo-text">${t.hora?`<strong>${t.hora}</strong> — `:''} ${t.texto}</span>
+      <span class="tag ${t.prior}">${t.prior}</span>
+    </div>`).join('')+'<div style="font-size:10px;color:var(--text3);padding:8px 0">'+(hoyItems.length>5?`+${hoyItems.length-5} más`:'')+'</div>':'<div class="empty">Sin tareas para hoy.</div>';
+  
+  const highTasks=tareas.filter(t=>!t.done&&t.prior==='alta');
+  document.getElementById('dash-high-list').innerHTML=highTasks.length?highTasks.map(t=>`
+    <div class="todo-item">
+      <span class="todo-text">${t.titulo}</span>
+      ${t.fecha?`<span class="todo-meta">${fmt_date(t.fecha)}</span>`:''}
+    </div>`).join(''):'<div class="empty">Sin tareas de alta prioridad. ✓</div>';
+  
+  document.getElementById('dash-events').innerHTML=eventosFuturos.length?eventosFuturos.slice(0,6).map(e=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;font-weight:500;min-width:70px;color:var(--blue)">${fmt_date(e.fecha)}</span>
+      <span class="ev-badge ${e.tipo}">${e.tipo}</span>
+      <span style="font-size:12px">${e.titulo}</span>
+    </div>`).join(''):'<div class="empty">Sin eventos próximos.</div>';
+}
+ 
+function addTodoHoy(){
+  const texto=document.getElementById('td-texto').value.trim();
+  if(!texto)return;
+  todosHoy.push({id:Date.now(),texto,hora:document.getElementById('td-hora').value,prior:document.getElementById('td-prior').value,done:false,fecha:today()});
+  persist();document.getElementById('td-texto').value='';renderTodoHoy();
+}
+function toggleTodo(id){const t=todosHoy.find(t=>t.id===id);if(t)t.done=!t.done;persist();renderTodoHoy();}
+function delTodo(id){todosHoy=todosHoy.filter(t=>t.id!==id);persist();renderTodoHoy();}
+function renderTodoHoy(){
+  const list=todosHoy.filter(t=>t.fecha===today()).sort((a,b)=>(a.hora||'99').localeCompare(b.hora||'99'));
+  if(!list.length){document.getElementById('todo-hoy-list').innerHTML='<div class="empty">Sin tareas para hoy. ¡Agrega una arriba!</div>';return;}
+  document.getElementById('todo-hoy-list').innerHTML=list.map(t=>`
+    <div class="todo-item">
+      <input type="checkbox" class="todo-cb" ${t.done?'checked':''} onchange="toggleTodo(${t.id})">
+      <div style="flex:1">
+        <span class="todo-text ${t.done?'done':''}">${t.hora?`<span style="color:var(--blue);font-weight:500">${t.hora}</span> — `:''} ${t.texto}</span>
+      </div>
+      <span class="tag ${t.prior}">${t.prior}</span>
+      <button class="xbtn" onclick="delTodo(${t.id})">✕</button>
+    </div>`).join('');
+}
+ 
+function addTarea(){
+  const titulo=document.getElementById('t-titulo').value.trim();
+  if(!titulo)return;
+  tareas.push({id:Date.now(),titulo,fecha:document.getElementById('t-fecha').value,prior:document.getElementById('t-prior').value,cat:document.getElementById('t-cat').value,done:false});
+  persist();document.getElementById('t-titulo').value='';renderTareas();
+}
+function toggleTarea(id){const t=tareas.find(t=>t.id===id);if(t)t.done=!t.done;persist();renderTareas();}
+function delTarea(id){tareas=tareas.filter(t=>t.id!==id);persist();renderTareas();}
+function renderTareas(){
+  const pend=tareas.filter(t=>!t.done).sort((a,b)=>{const o={alta:0,media:1,baja:2};return o[a.prior]-o[b.prior];});
+  const done=tareas.filter(t=>t.done);
+  const renderItem=t=>`
+    <div class="todo-item">
+      <input type="checkbox" class="todo-cb" ${t.done?'checked':''} onchange="toggleTarea(${t.id})">
+      <div style="flex:1">
+        <span class="todo-text ${t.done?'done':''}">${t.titulo}</span>
+        <div class="todo-meta">${t.cat}${t.fecha?' · '+fmt_date(t.fecha):''}</div>
+      </div>
+      <span class="tag ${t.prior}">${t.prior}</span>
+      <button class="xbtn" onclick="delTarea(${t.id})">✕</button>
+    </div>`;
+  document.getElementById('t-pendientes').innerHTML=pend.length?pend.map(renderItem).join(''):'<div class="empty">Sin tareas pendientes ✓</div>';
+  document.getElementById('t-completadas').innerHTML=done.length?done.map(renderItem).join(''):'';
+}
+ 
+function addEvento(){
+  const titulo=document.getElementById('ev-titulo').value.trim();
+  const fecha=document.getElementById('ev-fecha').value;
+  if(!titulo||!fecha)return;
+  eventos.push({id:Date.now(),titulo,fecha,tipo:document.getElementById('ev-tipo').value});
+  persist();document.getElementById('ev-titulo').value='';renderCal();renderEvList(fecha);
+}
+function delEvento(id){eventos=eventos.filter(e=>e.id!==id);persist();renderCal();}
+ 
+function renderCal(){
+  const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('cal-title').textContent=months[calMonth]+' '+calYear;
+  const first=new Date(calYear,calMonth,1);
+  const last=new Date(calYear,calMonth+1,0);
+  const todayStr=today();
+  let html='';
+  for(let i=0;i<first.getDay();i++)html+=`<div class="cal-day other-month"></div>`;
+  for(let d=1;d<=last.getDate();d++){
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayEvs=eventos.filter(e=>e.fecha===ds);
+    const isToday=ds===todayStr;
+    html+=`<div class="cal-day ${isToday?'today':''}" onclick="renderEvList('${ds}')">
+      <div class="cal-num">${d}</div>
+      ${dayEvs.slice(0,2).map(e=>`<div class="cal-dot" style="background:${e.tipo==='importante'?'#BF360C':e.tipo==='entrega'?'#1565C0':e.tipo==='recordatorio'?'#FF8F00':'#0D47A1'}"></div>`).join('')}
+    </div>`;
+  }
+  document.getElementById('cal-days').innerHTML=html;
+}
+function renderEvList(fecha){
+  const dayEvs=eventos.filter(e=>e.fecha===fecha);
+  document.getElementById('ev-selected-day').textContent=fmt_date(fecha);
+  document.getElementById('ev-list').innerHTML=dayEvs.length?dayEvs.map(e=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span class="ev-badge ${e.tipo}">${e.tipo}</span>
+      <span style="flex:1;font-size:12px">${e.titulo}</span>
+      <button class="xbtn" onclick="delEvento(${e.id})">✕</button>
+    </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:10px 0">Sin eventos este día.</div>';
+}
+function changeMonth(d){calMonth+=d;if(calMonth>11){calMonth=0;calYear++;}else if(calMonth<0){calMonth=11;calYear--;}renderCal();}
+ 
+function addNota(){
+  const titulo=document.getElementById('n-titulo').value.trim();
+  const cuerpo=document.getElementById('n-cuerpo').value.trim();
+  if(!titulo&&!cuerpo)return;
+  notas.unshift({id:Date.now(),titulo,cuerpo,cat:document.getElementById('n-cat').value,fecha:today()});
+  persist();document.getElementById('n-titulo').value='';document.getElementById('n-cuerpo').value='';renderNotas();
+}
+function delNota(id){notas=notas.filter(n=>n.id!==id);persist();renderNotas();}
+function renderNotas(){
+  if(!notas.length){document.getElementById('notas-list').innerHTML='<div class="empty">Sin apuntes aún.</div>';return;}
+  document.getElementById('notas-list').innerHTML=notas.map(n=>`
+    <div class="note-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+        <div>
+          <span class="tag media">${n.cat}</span>
+          <span class="note-title" style="display:inline;margin-left:8px">${n.titulo}</span>
+        </div>
+        <button class="xbtn" onclick="delNota(${n.id})">✕</button>
+      </div>
+      <div class="note-body">${n.cuerpo}</div>
+      <div class="note-date">${n.fecha}</div>
+    </div>`).join('');
+}
+ 
+renderDashboard();renderTodoHoy();renderTareas();renderNotas();renderCal();
+</script>
+</body>
+</html>

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hobbies — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FAFCFF;--bg2:#EEF4FF;--bg3:#DCE9FF;
+  --text:#1a1f36;--text2:#3d5166;--text3:#8aa0b8;
+  --border:rgba(2,136,209,0.12);--border2:rgba(2,136,209,0.25);
+  --r:8px;--rl:14px;
+  --blue:#0288D1;--blue-bg:#E1F5FE;--blue-dk:#01579B;--blue-lt:#29B6F6;
+  --navy:#01579B;--navy-bg:#E3F2FD;--navy-dk:#003c6e;
+  --orange:#FF6D00;--orange-bg:#FFF3E0;--orange-dk:#E65100;--orange-lt:#FF9100;
+  --amber:#FFB300;--amber-bg:#FFF8E1;--amber-dk:#FF6F00;
+  --green:#00897B;--green-bg:#E0F2F1;--green-dk:#004D40;
+  --red:#E53935;--red-bg:#FFEBEE;--red-dk:#B71C1C;
+  --gold:#FF8F00;--gold-bg:#FFF8E1;--gold-dk:#E65100;
+  --purple:#5E35B1;--purple-bg:#EDE7F6;--purple-dk:#311B92;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Jost',-apple-system,sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+.shell{max-width:1060px;margin:0 auto;padding:0 24px 80px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 0 18px;border-bottom:2px solid var(--border2);margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.back-link{font-size:11px;color:var(--text2);text-decoration:none;letter-spacing:.5px}.back-link:hover{color:var(--orange)}
+.app-title{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--text);text-align:center}
+.app-sub{font-size:11px;color:var(--text2);letter-spacing:.4px;text-align:center;margin-top:3px}
+.nav{display:flex;border-bottom:2px solid var(--border2);margin-bottom:26px;overflow-x:auto;scrollbar-width:none;gap:2px}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{padding:10px 18px;border:none;background:none;font-size:12px;font-family:var(--sans);color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;border-radius:var(--r) var(--r) 0 0;transition:all .15s}
+.nav-btn:hover{color:var(--orange);background:var(--orange-bg)}
+.nav-btn.active{color:var(--orange);border-bottom-color:var(--orange);font-weight:600;background:var(--orange-bg)}
+.page{display:none}.page.on{display:block}
+.card{background:var(--bg);border:1px solid var(--border2);border-radius:var(--rl);padding:22px;margin-bottom:16px;box-shadow:0 2px 12px rgba(2,136,209,.05)}
+.card-title{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--text);margin-bottom:18px;display:flex;align-items:center;justify-content:space-between}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--bg);border:1px solid var(--border2);border-radius:var(--rl);padding:16px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kpi-c,var(--orange))}
+.kpi-label{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px;font-weight:600}
+.kpi-val{font-family:var(--serif);font-size:22px;font-weight:700}
+.kpi-sub{font-size:10px;color:var(--text3);margin-top:3px}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.f{display:flex;flex-direction:column;gap:5px}.f.wide{grid-column:1/-1}
+.fl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.f input,.f select,.f textarea{height:38px;border:1.5px solid var(--border2);border-radius:var(--r);padding:0 12px;font-size:12px;font-family:var(--sans);background:var(--bg);color:var(--text);transition:border-color .2s}
+.f textarea{height:68px;padding:10px 12px;resize:vertical}
+.f input:focus,.f select:focus{outline:none;border-color:var(--orange)}
+.btn-save{padding:10px 22px;border:none;border-radius:var(--r);font-size:12px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:opacity .2s,transform .1s}
+.btn-save:hover{opacity:.88;transform:translateY(-1px)}
+.btn-save.orange{background:var(--orange);color:#fff}
+.btn-save.blue{background:var(--blue);color:#fff}
+.btn-save.green{background:var(--green);color:#fff}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:9px;font-weight:600;letter-spacing:.05em}
+.xbtn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:3px 7px;border-radius:5px}
+.xbtn:hover{color:var(--red);background:var(--red-bg)}
+.empty{text-align:center;padding:44px 20px;color:var(--text3);font-size:13px}
+.empty-icon{font-size:32px;margin-bottom:12px;opacity:.4;display:block}
+.prog{height:6px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;border-radius:4px;transition:width .5s ease}
+ 
+/* HOBBY CARDS */
+.hobby-main-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.hobby-card{
+  background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--rl);
+  padding:18px;position:relative;overflow:hidden;
+  transition:transform .18s,box-shadow .18s;
+}
+.hobby-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(255,109,0,.12)}
+.hobby-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:var(--hc,var(--orange))}
+.hobby-emoji{font-size:32px;margin-bottom:10px;display:block}
+.hobby-name{font-family:var(--serif);font-size:18px;font-weight:700;margin-bottom:4px;color:var(--text)}
+.hobby-cat{font-size:10px;color:var(--text2);margin-bottom:10px}
+.hobby-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.h-stat{text-align:center;background:var(--bg2);border-radius:var(--r);padding:8px 4px}
+.h-stat-val{font-family:var(--serif);font-size:16px;font-weight:700;color:var(--text)}
+.h-stat-label{font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-top:2px}
+.hobby-actions{display:flex;gap:6px;flex-wrap:wrap}
+.hbtn{height:30px;padding:0 12px;border-radius:20px;font-size:11px;font-weight:600;font-family:var(--sans);cursor:pointer;border:none;transition:opacity .2s,transform .1s}
+.hbtn:hover{opacity:.85;transform:scale(1.03)}
+.racha-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;background:var(--orange-bg);color:var(--orange-dk);margin-bottom:8px}
+ 
+/* HEATMAP */
+.heatmap-wrap{overflow-x:auto}
+.heatmap{display:grid;grid-template-columns:repeat(52,12px);gap:2px}
+.hm-day{width:12px;height:12px;border-radius:2px;background:var(--bg3);transition:background .2s}
+.hm-day.lvl1{background:#FFD54F}
+.hm-day.lvl2{background:#FF9100}
+.hm-day.lvl3{background:#FF6D00}
+.hm-day.lvl4{background:#E65100}
+.hm-months{display:flex;font-size:9px;color:var(--text3);margin-bottom:4px;gap:0}
+ 
+/* LOG */
+.log-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap}
+.log-item:last-child{border-bottom:none}
+ 
+@media(max-width:640px){.shell{padding:0 14px 60px}.grid2{grid-template-columns:1fr}.hobby-main-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+ 
+<div class="topbar">
+  <a class="back-link" href="hub.html">← Hub</a>
+  <div>
+    <div class="app-title">🌿 Hobbies</div>
+    <div class="app-sub" id="cur-date"></div>
+  </div>
+  <div style="width:60px"></div>
+</div>
+ 
+<div class="nav">
+  <button class="nav-btn active" onclick="goPage('dashboard',this)">Dashboard</button>
+  <button class="nav-btn" onclick="goPage('hobbies',this)">Mis Hobbies</button>
+  <button class="nav-btn" onclick="goPage('registro',this)">Registrar Sesión</button>
+  <button class="nav-btn" onclick="goPage('stats',this)">Estadísticas</button>
+</div>
+ 
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page on">
+  <div class="kpi-row" id="dash-kpi"></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">🔥 Rachas activas</div>
+      <div id="dash-rachas"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📅 Esta semana</div>
+      <div id="dash-semana"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🗓 Últimas sesiones</div>
+    <div id="dash-recent"></div>
+  </div>
+</div>
+ 
+<!-- HOBBIES -->
+<div id="page-hobbies" class="page">
+  <div class="card">
+    <div class="card-title">Agregar Hobby</div>
+    <div class="fg">
+      <div class="f"><div class="fl">Nombre</div><input type="text" id="hb-nombre" placeholder="Ej: Leer, Pintar, Guitarra..." onkeypress="if(event.key==='Enter')addHobby()"></div>
+      <div class="f"><div class="fl">Emoji</div><input type="text" id="hb-emoji" placeholder="🎸" maxlength="2" style="font-size:20px;text-align:center"></div>
+      <div class="f"><div class="fl">Categoría</div>
+        <select id="hb-cat">
+          <option>🎨 Arte y creación</option><option>🎵 Música</option><option>📚 Aprendizaje</option>
+          <option>🏃 Deporte y movimiento</option><option>🎮 Gaming</option><option>🌱 Naturaleza</option>
+          <option>🍳 Cocina</option><option>✈ Viajes</option><option>🤝 Social</option><option>🧘 Bienestar</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="f"><div class="fl">Frecuencia meta</div>
+        <select id="hb-freq">
+          <option value="diario">Diario</option><option value="3x">3 veces por semana</option>
+          <option value="semanal">Semanal</option><option value="quincenal">Quincenal</option><option value="mensual">Mensual</option>
+        </select>
+      </div>
+      <div class="f"><div class="fl">Duración típica (min)</div><input type="number" id="hb-duracion" placeholder="60" min="1"></div>
+    </div>
+    <div class="btn-row"><button class="btn-save orange" onclick="addHobby()">+ Agregar hobby</button></div>
+  </div>
+  <div class="hobby-main-grid" id="hobbies-grid"></div>
+</div>
+ 
+<!-- REGISTRAR SESIÓN -->
+<div id="page-registro" class="page">
+  <div class="card">
+    <div class="card-title">Registrar Sesión</div>
+    <div class="fg">
+      <div class="f"><div class="fl">Hobby</div>
+        <select id="reg-hobby" id="reg-hobby"><option value="">-- Seleccionar --</option></select>
+      </div>
+      <div class="f"><div class="fl">Fecha</div><input type="date" id="reg-fecha"></div>
+      <div class="f"><div class="fl">Duración (min)</div><input type="number" id="reg-dur" placeholder="60" min="1"></div>
+      <div class="f"><div class="fl">Estado de ánimo</div>
+        <select id="reg-mood">
+          <option value="5">😄 Excelente</option><option value="4">😊 Bien</option>
+          <option value="3">😐 Normal</option><option value="2">😕 Regular</option><option value="1">😔 Mal</option>
+        </select>
+      </div>
+      <div class="f wide"><div class="fl">Notas de la sesión</div><textarea id="reg-notas" placeholder="¿Qué lograste? ¿Cómo te sentiste? ¿Qué aprendiste?"></textarea></div>
+    </div>
+    <div class="btn-row"><button class="btn-save green" onclick="addSesion()">+ Guardar sesión</button></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Historial de sesiones</div>
+    <div id="sesiones-list"></div>
+  </div>
+</div>
+ 
+<!-- ESTADÍSTICAS -->
+<div id="page-stats" class="page">
+  <div class="kpi-row" id="stats-kpi"></div>
+  <div class="card">
+    <div class="card-title">Tiempo total por hobby (horas)</div>
+    <div id="stats-by-hobby"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Actividad del año — Mapa de calor</div>
+    <div class="heatmap-wrap">
+      <div class="hm-months" id="hm-months"></div>
+      <div class="heatmap" id="heatmap"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:10px;color:var(--text3)">
+      <span>Menos</span>
+      <div style="width:11px;height:11px;border-radius:2px;background:var(--bg3)"></div>
+      <div style="width:11px;height:11px;border-radius:2px;background:#FFD54F"></div>
+      <div style="width:11px;height:11px;border-radius:2px;background:#FF9100"></div>
+      <div style="width:11px;height:11px;border-radius:2px;background:#FF6D00"></div>
+      <div style="width:11px;height:11px;border-radius:2px;background:#E65100"></div>
+      <span>Más</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Estado de ánimo promedio por hobby</div>
+    <div id="stats-mood"></div>
+  </div>
+</div>
+ 
+</div>
+<script>
+const today=()=>new Date().toISOString().slice(0,10);
+const fmt_d=d=>d?new Date(d+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'}):'';
+document.getElementById('cur-date').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('reg-fecha').value=today();
+ 
+const COLORS=['#FF6D00','#0288D1','#5E35B1','#00897B','#FF8F00','#E53935','#29B6F6','#FF9100','#7B1FA2','#00ACC1'];
+ 
+let hobbies=[],sesiones=[];
+try{hobbies=JSON.parse(localStorage.getItem('ho_hb')||'[]')}catch(e){}
+try{sesiones=JSON.parse(localStorage.getItem('ho_se')||'[]')}catch(e){}
+ 
+function persist(){localStorage.setItem('ho_hb',JSON.stringify(hobbies));localStorage.setItem('ho_se',JSON.stringify(sesiones));}
+ 
+function goPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('on');btn.classList.add('active');
+  const map={dashboard:renderDashboard,hobbies:renderHobbies,registro:renderRegistro,stats:renderStats};
+  map[id]?.();
+}
+ 
+/* ── DASHBOARD ── */
+function renderDashboard(){
+  const totalSes=sesiones.length;
+  const totalMin=sesiones.reduce((a,b)=>a+(b.dur||0),0);
+  const thisMo=sesiones.filter(s=>s.fecha.startsWith(today().slice(0,7))).length;
+  const thisWeek=sesiones.filter(s=>{
+    const d=new Date(s.fecha+'T12:00:00');const n=new Date();
+    const w=new Date(n);w.setDate(n.getDate()-n.getDay());
+    return d>=w;
+  }).length;
+  
+  document.getElementById('dash-kpi').innerHTML=`
+    <div class="kpi" style="--kpi-c:var(--orange)"><div class="kpi-label">Hobbies</div><div class="kpi-val">${hobbies.length}</div></div>
+    <div class="kpi" style="--kpi-c:var(--blue)"><div class="kpi-label">Sesiones totales</div><div class="kpi-val">${totalSes}</div></div>
+    <div class="kpi" style="--kpi-c:var(--green)"><div class="kpi-label">Horas totales</div><div class="kpi-val">${Math.round(totalMin/60)}</div></div>
+    <div class="kpi" style="--kpi-c:var(--amber)"><div class="kpi-label">Este mes</div><div class="kpi-val">${thisMo}</div></div>
+    <div class="kpi" style="--kpi-c:var(--purple)"><div class="kpi-label">Esta semana</div><div class="kpi-val">${thisWeek}</div></div>
+  `;
+  
+  // Rachas
+  const rachas=hobbies.map(h=>{
+    const ses=sesiones.filter(s=>s.hobbyId===h.id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+    let racha=0,cur=new Date(today()+'T12:00:00');
+    const fechas=new Set(ses.map(s=>s.fecha));
+    while(fechas.has(cur.toISOString().slice(0,10))){racha++;cur.setDate(cur.getDate()-1);}
+    return{...h,racha};
+  }).filter(h=>h.racha>0).sort((a,b)=>b.racha-a.racha);
+  
+  document.getElementById('dash-rachas').innerHTML=rachas.length?rachas.slice(0,5).map(h=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:22px">${h.emoji||'●'}</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${h.nombre}</div></div>
+      <div class="racha-badge">🔥 ${h.racha} día${h.racha!==1?'s':''}</div>
+    </div>`).join(''):
+    `<div class="empty"><span class="empty-icon">🔥</span>Comienza a registrar sesiones para ver tus rachas.</div>`;
+  
+  // Esta semana
+  const weekStart=new Date();weekStart.setDate(weekStart.getDate()-weekStart.getDay());
+  const weekDays=Array.from({length:7},(_,i)=>{const d=new Date(weekStart);d.setDate(weekStart.getDate()+i);return d.toISOString().slice(0,10);});
+  const DAYS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  document.getElementById('dash-semana').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">
+      ${weekDays.map((d,i)=>{
+        const count=sesiones.filter(s=>s.fecha===d).length;
+        const isToday=d===today();
+        return`<div style="text-align:center;border-radius:var(--r);padding:8px 4px;background:${count>0?'var(--orange-bg)':isToday?'var(--blue-bg)':'var(--bg2)'};border:1.5px solid ${isToday?'var(--orange)':'var(--border)'}">
+          <div style="font-size:9px;text-transform:uppercase;color:var(--text3);font-weight:500">${DAYS[i]}</div>
+          <div style="font-size:16px;margin:3px 0">${count>0?'●':'○'}</div>
+          <div style="font-size:9px;font-weight:600;color:${count>0?'var(--orange-dk)':'var(--text3)'}">${count||''}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  
+  const recent=sesiones.sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,5);
+  const MOOD_EMOJI={5:'😄',4:'😊',3:'😐',2:'😕',1:'😔'};
+  document.getElementById('dash-recent').innerHTML=recent.length?recent.map(s=>{
+    const h=hobbies.find(h=>h.id===s.hobbyId);
+    return`<div class="log-item">
+      <span style="font-size:20px">${h?.emoji||'●'}</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${h?.nombre||'Hobby'}</div>
+        <div style="font-size:10px;color:var(--text2)">${fmt_d(s.fecha)} · ${s.dur} min${s.notas?` · "${s.notas.slice(0,40)}"`:''}</div>
+      </div>
+      <span style="font-size:18px">${MOOD_EMOJI[s.mood]||''}</span>
+    </div>`;
+  }).join(''):
+  `<div class="empty"><span class="empty-icon">📋</span>Sin sesiones registradas.</div>`;
+}
+ 
+/* ── HOBBIES ── */
+function addHobby(){
+  const n=document.getElementById('hb-nombre').value.trim();if(!n)return;
+  hobbies.push({id:Date.now(),nombre:n,emoji:document.getElementById('hb-emoji').value||'🎯',cat:document.getElementById('hb-cat').value,freq:document.getElementById('hb-freq').value,duracion:parseInt(document.getElementById('hb-duracion').value)||60});
+  persist();document.getElementById('hb-nombre').value='';document.getElementById('hb-emoji').value='';renderHobbies();updateHobbySelect();
+}
+function delHobby(id){
+  if(!confirm('¿Eliminar hobby y todas sus sesiones?'))return;
+  hobbies=hobbies.filter(h=>h.id!==id);sesiones=sesiones.filter(s=>s.hobbyId!==id);persist();renderHobbies();updateHobbySelect();
+}
+function checkIn(id){
+  const h=hobbies.find(h=>h.id===id);if(!h)return;
+  const ya=sesiones.find(s=>s.hobbyId===id&&s.fecha===today());
+  if(ya){alert('Ya registraste una sesión de '+h.nombre+' hoy.');return;}
+  sesiones.push({id:Date.now(),hobbyId:id,fecha:today(),dur:h.duracion,mood:4,notas:''});
+  persist();renderHobbies();
+}
+ 
+function getRacha(id){
+  const ses=sesiones.filter(s=>s.hobbyId===id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  let racha=0,cur=new Date(today()+'T12:00:00');
+  const fechas=new Set(ses.map(s=>s.fecha));
+  while(fechas.has(cur.toISOString().slice(0,10))){racha++;cur.setDate(cur.getDate()-1);}
+  return racha;
+}
+ 
+function getFreqLabel(f){return{diario:'Diario',semanal:'Semanal','3x':'3x semana',quincenal:'Quincenal',mensual:'Mensual'}[f]||f;}
+ 
+function renderHobbies(){
+  if(!hobbies.length){document.getElementById('hobbies-grid').innerHTML=`<div class="empty" style="grid-column:1/-1"><span class="empty-icon">🌿</span>Sin hobbies registrados. ¡Agrega el primero!</div>`;return;}
+  document.getElementById('hobbies-grid').innerHTML=hobbies.map((h,i)=>{
+    const col=COLORS[i%COLORS.length];
+    const totalSes=sesiones.filter(s=>s.hobbyId===h.id).length;
+    const totalMin=sesiones.filter(s=>s.hobbyId===h.id).reduce((a,b)=>a+(b.dur||0),0);
+    const racha=getRacha(h.id);
+    const hoy=sesiones.some(s=>s.hobbyId===h.id&&s.fecha===today());
+    const mesActual=sesiones.filter(s=>s.hobbyId===h.id&&s.fecha.startsWith(today().slice(0,7))).length;
+    return`<div class="hobby-card" style="--hc:${col}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:4px">
+        <div>
+          <span class="hobby-emoji">${h.emoji}</span>
+          <div class="hobby-name">${h.nombre}</div>
+          <div class="hobby-cat">${h.cat} · ${getFreqLabel(h.freq)}</div>
+        </div>
+        <button class="xbtn" onclick="delHobby(${h.id})">✕</button>
+      </div>
+      ${racha>0?`<div class="racha-badge">🔥 Racha: ${racha} día${racha!==1?'s':''}</div>`:''}
+      <div class="hobby-stats">
+        <div class="h-stat"><div class="h-stat-val" style="color:${col}">${totalSes}</div><div class="h-stat-label">Sesiones</div></div>
+        <div class="h-stat"><div class="h-stat-val" style="color:${col}">${Math.round(totalMin/60)}</div><div class="h-stat-label">Horas</div></div>
+        <div class="h-stat"><div class="h-stat-val" style="color:${col}">${mesActual}</div><div class="h-stat-label">Este mes</div></div>
+      </div>
+      <div class="hobby-actions">
+        <button class="hbtn" style="background:${hoy?'var(--green-bg)':'var(--orange)'};color:${hoy?'var(--green-dk)':'#fff'}" onclick="checkIn(${h.id})">
+          ${hoy?'✓ Ya hoy':'+ Check-in hoy'}
+        </button>
+        <button class="hbtn" style="background:var(--bg2);color:var(--text2)" onclick="goPage('registro',document.querySelector('.nav-btn:nth-child(3)'));document.getElementById('reg-hobby').value='${h.id}'">
+          📝 Registrar
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+ 
+/* ── REGISTRO ── */
+function updateHobbySelect(){
+  const sel=document.getElementById('reg-hobby');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">-- Seleccionar hobby --</option>'+hobbies.map(h=>`<option value="${h.id}">${h.emoji} ${h.nombre}</option>`).join('');
+  if(cur)sel.value=cur;
+}
+function addSesion(){
+  const hobbyId=parseInt(document.getElementById('reg-hobby').value);
+  if(!hobbyId){alert('Selecciona un hobby.');return;}
+  const dur=parseInt(document.getElementById('reg-dur').value)||60;
+  const fecha=document.getElementById('reg-fecha').value;
+  sesiones.push({id:Date.now(),hobbyId,fecha,dur,mood:parseInt(document.getElementById('reg-mood').value),notas:document.getElementById('reg-notas').value});
+  persist();document.getElementById('reg-notas').value='';renderRegistro();renderHobbies();
+}
+function delSesion(id){sesiones=sesiones.filter(s=>s.id!==id);persist();renderRegistro();}
+const MOOD_EMOJI={5:'😄',4:'😊',3:'😐',2:'😕',1:'😔'};
+function renderRegistro(){
+  updateHobbySelect();
+  const sorted=[...sesiones].sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,30);
+  document.getElementById('sesiones-list').innerHTML=sorted.length?sorted.map(s=>{
+    const h=hobbies.find(h=>h.id===s.hobbyId);
+    return`<div class="log-item">
+      <span style="font-size:22px">${h?.emoji||'●'}</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${h?.nombre||'?'}</div>
+        <div style="font-size:10px;color:var(--text2)">${fmt_d(s.fecha)} · ${s.dur} min</div>
+        ${s.notas?`<div style="font-size:11px;color:var(--text2);margin-top:3px;font-style:italic">"${s.notas.slice(0,80)}"</div>`:''}
+      </div>
+      <span style="font-size:20px">${MOOD_EMOJI[s.mood]||''}</span>
+      <button class="xbtn" onclick="delSesion(${s.id})">✕</button>
+    </div>`;
+  }).join(''):
+  `<div class="empty"><span class="empty-icon">📅</span>Sin sesiones registradas.</div>`;
+}
+ 
+/* ── STATS ── */
+function renderStats(){
+  const totalMin=sesiones.reduce((a,b)=>a+(b.dur||0),0);
+  const avgMood=sesiones.length?Math.round(sesiones.reduce((a,b)=>a+(b.mood||3),0)/sesiones.length*10)/10:0;
+  const avgDur=sesiones.length?Math.round(totalMin/sesiones.length):0;
+  const topH=hobbies.map(h=>({...h,mins:sesiones.filter(s=>s.hobbyId===h.id).reduce((a,b)=>a+(b.dur||0),0)})).sort((a,b)=>b.mins-a.mins)[0];
+  document.getElementById('stats-kpi').innerHTML=`
+    <div class="kpi" style="--kpi-c:var(--blue)"><div class="kpi-label">Total horas</div><div class="kpi-val">${Math.round(totalMin/60)}</div></div>
+    <div class="kpi" style="--kpi-c:var(--orange)"><div class="kpi-label">Mood promedio</div><div class="kpi-val">${MOOD_EMOJI[Math.round(avgMood)]||avgMood}</div></div>
+    <div class="kpi" style="--kpi-c:var(--green)"><div class="kpi-label">Duración media</div><div class="kpi-val">${avgDur}<span style="font-size:12px;font-weight:400"> min</span></div></div>
+    <div class="kpi" style="--kpi-c:var(--purple)"><div class="kpi-label">Hobby top</div><div class="kpi-val" style="font-size:16px">${topH?topH.emoji+' '+topH.nombre.slice(0,8):'—'}</div></div>
+  `;
+  
+  // By hobby bars
+  const byHobby=hobbies.map((h,i)=>({...h,mins:sesiones.filter(s=>s.hobbyId===h.id).reduce((a,b)=>a+(b.dur||0),0),col:COLORS[i%COLORS.length]})).sort((a,b)=>b.mins-a.mins);
+  const maxMins=byHobby[0]?.mins||1;
+  document.getElementById('stats-by-hobby').innerHTML=byHobby.length?byHobby.map(h=>`
+    <div style="display:grid;grid-template-columns:120px 1fr 60px;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px"><span style="font-size:16px">${h.emoji}</span>${h.nombre.slice(0,10)}</div>
+      <div class="prog"><div class="prog-fill" style="width:${Math.round(h.mins/maxMins*100)}%;background:${h.col}"></div></div>
+      <div style="font-size:12px;font-weight:600;text-align:right;color:${h.col}">${Math.round(h.mins/60)}h ${h.mins%60}m</div>
+    </div>`).join(''):
+  '<div class="empty" style="padding:20px">Sin datos.</div>';
+  
+  // Heatmap (last 52 weeks)
+  const heatData={};sesiones.forEach(s=>{heatData[s.fecha]=(heatData[s.fecha]||0)+1;});
+  const heatCells=[];
+  const now=new Date();
+  const start=new Date(now);start.setDate(now.getDate()-363);start.setDate(start.getDate()-start.getDay());
+  let cur=new Date(start);
+  while(cur<=now){
+    const ds=cur.toISOString().slice(0,10);
+    const c=heatData[ds]||0;
+    heatCells.push(`<div class="hm-day ${c>=4?'lvl4':c>=3?'lvl3':c>=2?'lvl2':c>=1?'lvl1':''}" title="${ds}: ${c} sesión${c!==1?'es':''}"></div>`);
+    cur.setDate(cur.getDate()+1);
+  }
+  document.getElementById('heatmap').innerHTML=heatCells.join('');
+  
+  // Mood by hobby
+  document.getElementById('stats-mood').innerHTML=byHobby.map(h=>{
+    const ses=sesiones.filter(s=>s.hobbyId===h.id&&s.mood);
+    const avg=ses.length?Math.round(ses.reduce((a,b)=>a+b.mood,0)/ses.length*10)/10:0;
+    return ses.length?`<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:20px">${h.emoji}</span>
+      <span style="font-size:13px;font-weight:600;flex:1">${h.nombre}</span>
+      <span style="font-size:20px">${MOOD_EMOJI[Math.round(avg)]||''}</span>
+      <span style="font-size:12px;font-weight:600;color:${h.col}">${avg}/5</span>
+    </div>`:''}).filter(Boolean).join('') || '<div class="empty" style="padding:20px">Registra sesiones con estado de ánimo.</div>';
+}
+ 
+// Init
+renderDashboard();renderHobbies();renderRegistro();updateHobbySelect();
+</script>
+</body>
+</html>

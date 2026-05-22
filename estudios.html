@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estudios — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FAFCFF;--bg2:#EEF4FF;--bg3:#DCE9FF;
+  --text:#1a1f36;--text2:#3d5166;--text3:#8aa0b8;
+  --border:rgba(2,136,209,0.12);--border2:rgba(2,136,209,0.25);
+  --r:8px;--rl:14px;
+  --blue:#0288D1;--blue-bg:#E1F5FE;--blue-dk:#01579B;--blue-lt:#29B6F6;
+  --navy:#01579B;--navy-bg:#E3F2FD;--navy-dk:#003c6e;
+  --orange:#FF6D00;--orange-bg:#FFF3E0;--orange-dk:#E65100;--orange-lt:#FF9100;
+  --amber:#FFB300;--amber-bg:#FFF8E1;--amber-dk:#FF6F00;
+  --green:#00897B;--green-bg:#E0F2F1;--green-dk:#004D40;
+  --red:#E53935;--red-bg:#FFEBEE;--red-dk:#B71C1C;
+  --gold:#FF8F00;--gold-bg:#FFF8E1;--gold-dk:#E65100;
+  --purple:#5E35B1;--purple-bg:#EDE7F6;--purple-dk:#311B92;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Jost',-apple-system,sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+.shell{max-width:1080px;margin:0 auto;padding:0 24px 80px}
+ 
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 0 18px;border-bottom:2px solid var(--border2);margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.back-link{font-size:11px;color:var(--text2);text-decoration:none;letter-spacing:.5px;display:flex;align-items:center;gap:5px;transition:color .2s}
+.back-link:hover{color:var(--orange)}
+.app-title{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--text);text-align:center}
+.app-sub{font-size:11px;color:var(--text2);letter-spacing:.4px;margin-top:3px;text-align:center}
+ 
+/* NAV */
+.nav{display:flex;border-bottom:2px solid var(--border2);margin-bottom:26px;overflow-x:auto;scrollbar-width:none;gap:2px}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{padding:10px 18px;border:none;background:none;font-size:12px;font-family:var(--sans);color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;letter-spacing:.3px;transition:color .2s;border-radius:var(--r) var(--r) 0 0}
+.nav-btn:hover{color:var(--orange);background:var(--orange-bg)}
+.nav-btn.active{color:var(--orange);border-bottom-color:var(--orange);font-weight:600;background:var(--orange-bg)}
+.page{display:none}.page.on{display:block}
+ 
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--bg);border:1px solid var(--border2);border-radius:var(--rl);padding:16px 18px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kpi-color,var(--orange))}
+.kpi-label{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px;font-weight:500}
+.kpi-val{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--text)}
+.kpi-sub{font-size:10px;color:var(--text3);margin-top:3px}
+ 
+/* CARD */
+.card{background:var(--bg);border:1px solid var(--border2);border-radius:var(--rl);padding:22px;margin-bottom:16px;box-shadow:0 2px 12px rgba(2,136,209,0.06)}
+.card-title{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--text);margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+ 
+/* FORM */
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.f{display:flex;flex-direction:column;gap:5px}.f.wide{grid-column:1/-1}
+.fl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.f input,.f select,.f textarea{height:38px;border:1.5px solid var(--border2);border-radius:var(--r);padding:0 12px;font-size:12px;font-family:var(--sans);background:var(--bg);color:var(--text);transition:border-color .2s}
+.f textarea{height:72px;padding:10px 12px;resize:vertical}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--orange)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.btn-save{padding:10px 22px;border:none;border-radius:var(--r);font-size:12px;font-weight:600;font-family:var(--sans);cursor:pointer;letter-spacing:.3px;transition:opacity .2s,transform .1s}
+.btn-save:hover{opacity:.88;transform:translateY(-1px)}
+.btn-save.orange{background:var(--orange);color:#fff}
+.btn-save.blue{background:var(--blue);color:#fff}
+.btn-save.purple{background:var(--purple);color:#fff}
+.btn-save.green{background:var(--green);color:#fff}
+.btn-save.amber{background:var(--amber);color:var(--amber-dk)}
+.btn-ghost{padding:10px 16px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:12px;font-family:var(--sans);background:transparent;color:var(--text2);cursor:pointer}
+.btn-ghost:hover{background:var(--bg2)}
+ 
+/* ITEMS */
+.xbtn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:3px 7px;border-radius:5px;transition:color .2s,background .2s}
+.xbtn:hover{color:var(--red);background:var(--red-bg)}
+.tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:9px;font-weight:600;letter-spacing:.05em}
+.tag-o{background:var(--orange-bg);color:var(--orange-dk)}
+.tag-b{background:var(--blue-bg);color:var(--blue-dk)}
+.tag-p{background:var(--purple-bg);color:var(--purple-dk)}
+.tag-g{background:var(--green-bg);color:var(--green-dk)}
+.tag-r{background:var(--red-bg);color:var(--red-dk)}
+.tag-a{background:var(--amber-bg);color:var(--amber-dk)}
+.empty{text-align:center;padding:44px 20px;color:var(--text3);font-size:13px}
+.empty-icon{font-size:32px;margin-bottom:12px;opacity:.4;display:block}
+ 
+/* TODO */
+.todo-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+.todo-item:last-child{border-bottom:none}
+.todo-cb{width:17px;height:17px;border-radius:4px;cursor:pointer;accent-color:var(--orange);flex-shrink:0}
+.todo-text{flex:1;font-size:13px;color:var(--text)}
+.todo-text.done{text-decoration:line-through;color:var(--text3)}
+ 
+/* PROJECTS */
+.proj-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);padding:16px;position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s}
+.proj-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(2,136,209,.1)}
+.proj-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--proj-color,var(--orange))}
+.proj-name{font-weight:600;font-size:14px;margin-bottom:6px;color:var(--text)}
+.prog{height:6px;background:var(--bg3);border-radius:4px;overflow:hidden;margin:8px 0}
+.prog-fill{height:100%;border-radius:4px;transition:width .6s ease}
+ 
+/* COURSES */
+.course-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px;display:flex;align-items:center;gap:12px;transition:background .15s}
+.course-card:hover{background:var(--blue-bg)}
+.course-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.course-info{flex:1}
+.course-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.course-meta{font-size:10px;color:var(--text2)}
+ 
+/* NOTES CORTES */
+.corte-section{border:1.5px solid var(--border2);border-radius:var(--rl);margin-bottom:16px;overflow:hidden}
+.corte-header{padding:14px 18px;background:var(--bg2);display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;border-bottom:1px solid var(--border2)}
+.corte-header:hover{background:var(--blue-bg)}
+.corte-title{font-family:var(--serif);font-size:15px;font-weight:700;color:var(--text)}
+.corte-body{padding:16px;display:none}
+.corte-body.open{display:block}
+.note-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.note-title{font-weight:600;font-size:13px;margin-bottom:5px;color:var(--text)}
+.note-body{font-size:12px;color:var(--text2);line-height:1.7;white-space:pre-wrap}
+.note-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:6px}
+ 
+/* SUBJECT TABS */
+.subject-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.s-tab{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid var(--border2);background:var(--bg);color:var(--text2);transition:all .2s}
+.s-tab.active,.s-tab:hover{background:var(--orange);color:#fff;border-color:var(--orange)}
+ 
+@media(max-width:640px){.shell{padding:0 14px 60px}.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+ 
+<div class="topbar">
+  <a class="back-link" href="hub.html">← Hub</a>
+  <div>
+    <div class="app-title">📚 Estudios</div>
+    <div class="app-sub" id="cur-date"></div>
+  </div>
+  <div style="width:60px"></div>
+</div>
+ 
+<div class="nav">
+  <button class="nav-btn active" onclick="goPage('dashboard',this)">Dashboard</button>
+  <button class="nav-btn" onclick="goPage('todo',this)">To-Do</button>
+  <button class="nav-btn" onclick="goPage('proyectos',this)">Proyectos</button>
+  <button class="nav-btn" onclick="goPage('cursos',this)">Cursos</button>
+  <button class="nav-btn" onclick="goPage('notas',this)">Apuntes por Corte</button>
+</div>
+ 
+<!-- ── DASHBOARD ─────────────────────── -->
+<div id="page-dashboard" class="page on">
+  <div class="kpi-row" id="dash-kpi"></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">📋 Tareas urgentes</div>
+      <div id="dash-urgent"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🗂 Proyectos activos</div>
+      <div id="dash-projects"></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">🎓 Progreso de cursos</div>
+      <div id="dash-courses"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Resumen semestral</div>
+      <div style="height:180px"><canvas id="c-sem"></canvas></div>
+    </div>
+  </div>
+</div>
+ 
+<!-- ── TO-DO ──────────────────────────── -->
+<div id="page-todo" class="page">
+  <div class="card">
+    <div class="card-title">Nueva Tarea</div>
+    <div class="fg">
+      <div class="f"><div class="fl">Tarea</div><input type="text" id="td-texto" placeholder="Describir tarea..." onkeypress="if(event.key==='Enter')addTodo()"></div>
+      <div class="f"><div class="fl">Materia</div><input type="text" id="td-materia" placeholder="Ej: Cálculo I" list="materias-list"></div>
+      <datalist id="materias-list"></datalist>
+      <div class="f"><div class="fl">Fecha límite</div><input type="date" id="td-fecha"></div>
+      <div class="f"><div class="fl">Prioridad</div>
+        <select id="td-prior">
+          <option value="alta">🔴 Alta</option>
+          <option value="media" selected>🟡 Media</option>
+          <option value="baja">🟢 Baja</option>
+        </select>
+      </div>
+      <div class="f"><div class="fl">Tipo</div>
+        <select id="td-tipo">
+          <option>Tarea</option><option>Parcial / Examen</option><option>Quiz</option>
+          <option>Trabajo grupal</option><option>Lectura</option><option>Exposición</option><option>Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn-save orange" onclick="addTodo()">+ Agregar tarea</button></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span>Pendientes</span><span id="todo-count" style="font-size:12px;font-weight:400;color:var(--text2)"></span></div>
+    <div id="todo-pend"></div>
+    <div style="display:flex;align-items:center;gap:12px;margin:16px 0 8px">
+      <span style="font-family:var(--serif);font-size:13px;font-style:italic;color:var(--text3)">Completadas</span>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+    </div>
+    <div id="todo-done" style="opacity:.55"></div>
+  </div>
+</div>
+ 
+<!-- ── PROYECTOS ──────────────────────── -->
+<div id="page-proyectos" class="page">
+  <div class="card">
+    <div class="card-title">Nuevo Proyecto Escolar</div>
+    <div class="fg">
+      <div class="f"><div class="fl">Nombre</div><input type="text" id="pr-nombre" placeholder="Ej: Proyecto de grado..."></div>
+      <div class="f"><div class="fl">Materia</div><input type="text" id="pr-materia" placeholder="Materia" list="materias-list2"><datalist id="materias-list2"></datalist></div>
+      <div class="f"><div class="fl">Fecha entrega</div><input type="date" id="pr-fecha"></div>
+      <div class="f"><div class="fl">Avance %</div><input type="number" id="pr-avance" placeholder="0" min="0" max="100"></div>
+      <div class="f"><div class="fl">Estado</div>
+        <select id="pr-estado">
+          <option>En progreso</option><option>Sin iniciar</option><option>Pausado</option><option>Completado</option>
+        </select>
+      </div>
+      <div class="f"><div class="fl">Integrantes</div><input type="text" id="pr-integrantes" placeholder="Nombres separados por coma"></div>
+      <div class="f wide"><div class="fl">Descripción</div><textarea id="pr-desc" placeholder="¿De qué trata el proyecto?"></textarea></div>
+    </div>
+    <div class="btn-row"><button class="btn-save blue" onclick="addProyecto()">+ Crear proyecto</button></div>
+  </div>
+  <div id="proj-list" class="grid3" style="margin-top:4px"></div>
+</div>
+ 
+<!-- ── CURSOS ─────────────────────────── -->
+<div id="page-cursos" class="page">
+  <div class="card">
+    <div class="card-title">Agregar Curso</div>
+    <div class="fg">
+      <div class="f"><div class="fl">Nombre del curso</div><input type="text" id="cu-nombre" placeholder="Ej: JavaScript Avanzado"></div>
+      <div class="f"><div class="fl">Plataforma</div>
+        <select id="cu-plat">
+          <option>YouTube</option><option>Udemy</option><option>Coursera</option><option>edX</option>
+          <option>Platzi</option><option>Google</option><option>LinkedIn Learning</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="f"><div class="fl">Área</div>
+        <select id="cu-area">
+          <option>Tecnología</option><option>Diseño</option><option>Negocios</option><option>Idiomas</option>
+          <option>Ciencias</option><option>Arte</option><option>Música</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="f"><div class="fl">Avance %</div><input type="number" id="cu-avance" placeholder="0" min="0" max="100"></div>
+      <div class="f"><div class="fl">Estado</div>
+        <select id="cu-estado">
+          <option>En progreso</option><option>Quiero hacer</option><option>Completado</option><option>Pausado</option>
+        </select>
+      </div>
+      <div class="f"><div class="fl">URL (opcional)</div><input type="url" id="cu-url" placeholder="https://..."></div>
+    </div>
+    <div class="btn-row"><button class="btn-save purple" onclick="addCurso()">+ Agregar curso</button></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <button class="s-tab active" id="cu-filter-all" onclick="filterCursos('all',this)">Todos</button>
+    <button class="s-tab" onclick="filterCursos('En progreso',this)">En progreso</button>
+    <button class="s-tab" onclick="filterCursos('Completado',this)">Completados</button>
+    <button class="s-tab" onclick="filterCursos('Quiero hacer',this)">Quiero hacer</button>
+  </div>
+  <div id="cursos-list"></div>
+</div>
+ 
+<!-- ── APUNTES POR CORTE ──────────────── -->
+<div id="page-notas" class="page">
+  <div class="card">
+    <div class="card-title">Nuevo Apunte</div>
+    <div class="fg">
+      <div class="f"><div class="fl">Materia</div><input type="text" id="no-materia" placeholder="Ej: Álgebra Lineal" list="materias-list3"><datalist id="materias-list3"></datalist></div>
+      <div class="f"><div class="fl">Título</div><input type="text" id="no-titulo" placeholder="Tema del apunte..."></div>
+      <div class="f"><div class="fl">Corte</div>
+        <select id="no-corte">
+          <option value="1">Primer Corte</option>
+          <option value="2">Segundo Corte</option>
+          <option value="3">Tercer Corte</option>
+        </select>
+      </div>
+      <div class="f"><div class="fl">Fecha</div><input type="date" id="no-fecha"></div>
+      <div class="f wide"><div class="fl">Contenido del apunte</div><textarea id="no-cuerpo" placeholder="Escribe aquí el apunte, fórmulas, resumen de clase..."></textarea></div>
+    </div>
+    <div class="btn-row"><button class="btn-save green" onclick="addNota()">+ Guardar apunte</button></div>
+  </div>
+  <div class="subject-tabs" id="subject-tabs"></div>
+  <div id="notas-cortes"></div>
+</div>
+ 
+</div><!-- /shell -->
+<script>
+let todos=[],proyectos=[],cursos=[],notas=[];
+try{todos=JSON.parse(localStorage.getItem('es_td')||'[]')}catch(e){}
+try{proyectos=JSON.parse(localStorage.getItem('es_pr')||'[]')}catch(e){}
+try{cursos=JSON.parse(localStorage.getItem('es_cu')||'[]')}catch(e){}
+try{notas=JSON.parse(localStorage.getItem('es_no')||'[]')}catch(e){}
+ 
+function persist(){
+  localStorage.setItem('es_td',JSON.stringify(todos));
+  localStorage.setItem('es_pr',JSON.stringify(proyectos));
+  localStorage.setItem('es_cu',JSON.stringify(cursos));
+  localStorage.setItem('es_no',JSON.stringify(notas));
+}
+const today=()=>new Date().toISOString().slice(0,10);
+const fmt_d=d=>d?new Date(d+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'}):'';
+const PROJ_COLS=['#FF6D00','#0288D1','#5E35B1','#00897B','#FF8F00','#E53935'];
+document.getElementById('cur-date').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('td-fecha').value=today();
+document.getElementById('pr-fecha').value=today();
+document.getElementById('no-fecha').value=today();
+ 
+function getMaterias(){return[...new Set([...todos.map(t=>t.materia),...proyectos.map(p=>p.materia),...notas.map(n=>n.materia)].filter(Boolean))]}
+function updateDatalists(){
+  const m=getMaterias();
+  ['materias-list','materias-list2','materias-list3'].forEach(id=>{
+    const dl=document.getElementById(id);if(!dl)return;
+    dl.innerHTML=m.map(x=>`<option value="${x}">`).join('');
+  });
+}
+ 
+let charts={};
+function destroyC(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+ 
+function goPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('on');btn.classList.add('active');
+  updateDatalists();
+  const map={dashboard:renderDashboard,todo:renderTodo,proyectos:renderProyectos,cursos:()=>renderCursos('all'),notas:renderNotas};
+  map[id]?.();
+}
+ 
+/* ── DASHBOARD ── */
+function renderDashboard(){
+  const pend=todos.filter(t=>!t.done);
+  const done=todos.filter(t=>t.done);
+  const active=proyectos.filter(p=>p.estado!=='Completado');
+  const curComp=cursos.filter(c=>c.estado==='Completado');
+  const curInProg=cursos.filter(c=>c.estado==='En progreso');
+  
+  document.getElementById('dash-kpi').innerHTML=`
+    <div class="kpi" style="--kpi-color:var(--orange)"><div class="kpi-label">Tareas pendientes</div><div class="kpi-val">${pend.length}</div><div class="kpi-sub">${done.length} completadas</div></div>
+    <div class="kpi" style="--kpi-color:var(--blue)"><div class="kpi-label">Proyectos activos</div><div class="kpi-val">${active.length}</div></div>
+    <div class="kpi" style="--kpi-color:var(--purple)"><div class="kpi-label">Cursos en progreso</div><div class="kpi-val">${curInProg.length}</div></div>
+    <div class="kpi" style="--kpi-color:var(--green)"><div class="kpi-label">Cursos completados</div><div class="kpi-val">${curComp.length}</div></div>
+    <div class="kpi" style="--kpi-color:var(--amber)"><div class="kpi-label">Apuntes</div><div class="kpi-val">${notas.length}</div></div>
+  `;
+  
+  const urgent=pend.filter(t=>t.prior==='alta').slice(0,5);
+  document.getElementById('dash-urgent').innerHTML=urgent.length?urgent.map(t=>`
+    <div class="todo-item">
+      <div style="flex:1"><div style="font-size:13px;font-weight:500">${t.texto}</div>
+        <div style="font-size:10px;color:var(--text2)">${t.materia||''}${t.fecha?' · '+fmt_d(t.fecha):''}</div></div>
+      <span class="tag tag-r">Alta</span>
+    </div>`).join(''):
+    `<div class="empty"><span class="empty-icon">✅</span>Sin tareas urgentes.</div>`;
+  
+  document.getElementById('dash-projects').innerHTML=active.length?active.slice(0,4).map((p,i)=>`
+    <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <div style="font-size:13px;font-weight:600">${p.nombre}</div>
+        <span style="font-size:11px;color:var(--text2)">${p.avance||0}%</span>
+      </div>
+      <div class="prog"><div class="prog-fill" style="width:${p.avance||0}%;background:${PROJ_COLS[i%PROJ_COLS.length]}"></div></div>
+    </div>`).join(''):
+    `<div class="empty"><span class="empty-icon">🗂</span>Sin proyectos activos.</div>`;
+  
+  document.getElementById('dash-courses').innerHTML=curInProg.length?curInProg.slice(0,4).map(c=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:8px;background:var(--purple-bg);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">📖</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600">${c.nombre}</div>
+        <div class="prog" style="margin:4px 0 0"><div class="prog-fill" style="width:${c.avance||0}%;background:var(--purple)"></div></div>
+      </div>
+      <span style="font-size:11px;font-weight:600;color:var(--purple)">${c.avance||0}%</span>
+    </div>`).join(''):
+    `<div class="empty"><span class="empty-icon">🎓</span>Sin cursos en progreso.</div>`;
+  
+  // Semestral chart
+  destroyC('sem');
+  const CORTES=['1er Corte','2do Corte','3er Corte'];
+  const counts=CORTES.map((_,i)=>notas.filter(n=>n.corte==i+1).length);
+  const materias=[...new Set(notas.map(n=>n.materia).filter(Boolean))];
+  charts['sem']=new Chart(document.getElementById('c-sem'),{
+    type:'bar',
+    data:{labels:materias.length?materias:['Sin materias aún'],
+      datasets:[{label:'Apuntes',data:materias.map(m=>notas.filter(n=>n.materia===m).length),backgroundColor:'#FF6D00',borderRadius:6},{label:'Tareas',data:materias.map(m=>todos.filter(t=>t.materia===m).length),backgroundColor:'#0288D1',borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:10}}},scales:{x:{ticks:{color:'#3d5166',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#3d5166',font:{size:10}},grid:{color:'rgba(2,136,209,.08)'}}}}
+  });
+}
+ 
+/* ── TO-DO ── */
+function addTodo(){
+  const texto=document.getElementById('td-texto').value.trim();if(!texto)return;
+  todos.push({id:Date.now(),texto,materia:document.getElementById('td-materia').value.trim(),fecha:document.getElementById('td-fecha').value,prior:document.getElementById('td-prior').value,tipo:document.getElementById('td-tipo').value,done:false});
+  persist();document.getElementById('td-texto').value='';updateDatalists();renderTodo();
+}
+function toggleTodo(id){const t=todos.find(t=>t.id===id);if(t)t.done=!t.done;persist();renderTodo();}
+function delTodo(id){todos=todos.filter(t=>t.id!==id);persist();renderTodo();}
+function renderTodo(){
+  const TAG={alta:'tag-r',media:'tag-a',baja:'tag-g'};
+  const pend=todos.filter(t=>!t.done).sort((a,b)=>{const o={alta:0,media:1,baja:2};return o[a.prior]-o[b.prior];});
+  const done=todos.filter(t=>t.done);
+  document.getElementById('todo-count').textContent=`${pend.length} pendiente${pend.length!==1?'s':''}`;
+  const renderItem=t=>`
+    <div class="todo-item">
+      <input type="checkbox" class="todo-cb" ${t.done?'checked':''} onchange="toggleTodo(${t.id})">
+      <div style="flex:1">
+        <div class="todo-text ${t.done?'done':''}">${t.texto}</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:2px">
+          ${t.materia?`<strong>${t.materia}</strong>`:''} ${t.tipo?' · '+t.tipo:''} ${t.fecha?' · '+fmt_d(t.fecha):''}
+        </div>
+      </div>
+      <span class="tag ${TAG[t.prior]||'tag-b'}">${t.prior}</span>
+      <button class="xbtn" onclick="delTodo(${t.id})">✕</button>
+    </div>`;
+  document.getElementById('todo-pend').innerHTML=pend.length?pend.map(renderItem).join(''):`<div class="empty"><span class="empty-icon">🎉</span>¡Todo al día!</div>`;
+  document.getElementById('todo-done').innerHTML=done.map(renderItem).join('');
+}
+ 
+/* ── PROYECTOS ── */
+function addProyecto(){
+  const n=document.getElementById('pr-nombre').value.trim();if(!n)return;
+  proyectos.push({id:Date.now(),nombre:n,materia:document.getElementById('pr-materia').value.trim(),fecha:document.getElementById('pr-fecha').value,avance:parseInt(document.getElementById('pr-avance').value)||0,estado:document.getElementById('pr-estado').value,integrantes:document.getElementById('pr-integrantes').value,desc:document.getElementById('pr-desc').value});
+  persist();['pr-nombre','pr-materia','pr-avance','pr-integrantes','pr-desc'].forEach(id=>document.getElementById(id).value='');updateDatalists();renderProyectos();
+}
+function delProyecto(id){proyectos=proyectos.filter(p=>p.id!==id);persist();renderProyectos();}
+function updateAvance(id,val){const p=proyectos.find(p=>p.id===id);if(p){p.avance=parseInt(val);if(p.avance>=100)p.estado='Completado';persist();renderProyectos();}}
+function renderProyectos(){
+  const ST_COL={En:'tag-o','Sin':'tag-r',Pau:'tag-b',Com:'tag-g'};
+  if(!proyectos.length){document.getElementById('proj-list').innerHTML=`<div class="empty" style="grid-column:1/-1"><span class="empty-icon">🗂</span>Sin proyectos aún.</div>`;return;}
+  document.getElementById('proj-list').innerHTML=proyectos.map((p,i)=>{
+    const col=PROJ_COLS[i%PROJ_COLS.length];
+    const stKey=p.estado.slice(0,3);
+    const stClass=ST_COL[stKey]||'tag-b';
+    return`<div class="proj-card" style="--proj-color:${col}">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span class="tag ${stClass}">${p.estado}</span>
+        <button class="xbtn" onclick="delProyecto(${p.id})">✕</button>
+      </div>
+      <div class="proj-name">${p.nombre}</div>
+      <div style="font-size:10px;color:var(--text2);margin-bottom:8px">
+        ${p.materia?`📖 ${p.materia} `:''} ${p.fecha?`· 📅 ${fmt_d(p.fecha)}`:''}
+        ${p.integrantes?`<br>👥 ${p.integrantes}`:''}
+      </div>
+      ${p.desc?`<div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">${p.desc.slice(0,100)}${p.desc.length>100?'...':''}</div>`:''}
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:4px">
+        <span>Avance</span><span style="font-weight:700;color:${col}">${p.avance}%</span>
+      </div>
+      <div class="prog"><div class="prog-fill" style="width:${p.avance}%;background:${col}"></div></div>
+      <input type="range" min="0" max="100" value="${p.avance}" oninput="updateAvance(${p.id},this.value)" style="width:100%;margin-top:8px;accent-color:${col}">
+    </div>`;
+  }).join('');
+}
+ 
+/* ── CURSOS ── */
+function addCurso(){
+  const n=document.getElementById('cu-nombre').value.trim();if(!n)return;
+  cursos.push({id:Date.now(),nombre:n,plat:document.getElementById('cu-plat').value,area:document.getElementById('cu-area').value,avance:parseInt(document.getElementById('cu-avance').value)||0,estado:document.getElementById('cu-estado').value,url:document.getElementById('cu-url').value});
+  persist();document.getElementById('cu-nombre').value='';document.getElementById('cu-avance').value='';document.getElementById('cu-url').value='';renderCursos('all');
+}
+function delCurso(id){cursos=cursos.filter(c=>c.id!==id);persist();renderCursos('all');}
+let curFilter='all';
+function filterCursos(f,btn){
+  curFilter=f;
+  document.querySelectorAll('.s-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderCursos(f);
+}
+const AREA_ICONS={Tecnología:'💻',Diseño:'🎨',Negocios:'📊',Idiomas:'🌐',Ciencias:'🔬',Arte:'🎭',Música:'🎵',Otro:'📚'};
+const ST_CU_COL={En:'tag-o','Qu':'tag-b',Com:'tag-g',Pau:'tag-r'};
+function renderCursos(f){
+  const list=f==='all'?cursos:cursos.filter(c=>c.estado===f);
+  if(!list.length){document.getElementById('cursos-list').innerHTML=`<div class="empty"><span class="empty-icon">📖</span>Sin cursos en esta categoría.</div>`;return;}
+  document.getElementById('cursos-list').innerHTML=list.map(c=>{
+    const col=c.estado==='Completado'?'#00897B':c.estado==='En progreso'?'#FF6D00':'#0288D1';
+    const stKey=c.estado.slice(0,2);
+    return`<div class="course-card" style="margin-bottom:8px">
+      <div class="course-icon" style="background:var(--blue-bg)">${AREA_ICONS[c.area]||'📚'}</div>
+      <div class="course-info">
+        <div class="course-name">${c.nombre} ${c.url?`<a href="${c.url}" target="_blank" style="font-size:10px;color:var(--blue)">↗</a>`:''}</div>
+        <div class="course-meta">${c.plat} · ${c.area}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <div class="prog" style="flex:1;height:5px;margin:0"><div class="prog-fill" style="width:${c.avance}%;background:${col}"></div></div>
+          <span style="font-size:11px;font-weight:600;color:${col}">${c.avance}%</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <span class="tag ${ST_CU_COL[stKey]||'tag-b'}">${c.estado}</span>
+        <button class="xbtn" onclick="delCurso(${c.id})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+ 
+/* ── NOTAS ── */
+function addNota(){
+  const materia=document.getElementById('no-materia').value.trim();
+  const titulo=document.getElementById('no-titulo').value.trim();
+  const cuerpo=document.getElementById('no-cuerpo').value.trim();
+  if(!titulo&&!cuerpo)return;
+  notas.unshift({id:Date.now(),materia,titulo,cuerpo,corte:parseInt(document.getElementById('no-corte').value),fecha:document.getElementById('no-fecha').value});
+  persist();document.getElementById('no-titulo').value='';document.getElementById('no-cuerpo').value='';updateDatalists();renderNotas();
+}
+function delNota(id){notas=notas.filter(n=>n.id!==id);persist();renderNotas();}
+function toggleCorte(id){const el=document.getElementById('cb-'+id);if(el)el.classList.toggle('open');}
+ 
+let selectedMat='all';
+function renderNotas(){
+  const materias=[...new Set(notas.map(n=>n.materia).filter(Boolean))];
+  document.getElementById('subject-tabs').innerHTML=
+    `<button class="s-tab ${selectedMat==='all'?'active':''}" onclick="selectMat('all',this)">Todas</button>`+
+    materias.map(m=>`<button class="s-tab ${selectedMat===m?'active':''}" onclick="selectMat('${m}',this)">${m}</button>`).join('');
+  
+  const filtered=selectedMat==='all'?notas:notas.filter(n=>n.materia===selectedMat);
+  const CORTE_LABELS=['Primer Corte','Segundo Corte','Tercer Corte'];
+  const CORTE_COLS=['#FF6D00','#0288D1','#5E35B1'];
+  
+  let html='';
+  [1,2,3].forEach(c=>{
+    const items=filtered.filter(n=>n.corte===c);
+    html+=`<div class="corte-section">
+      <div class="corte-header" onclick="toggleCorte('c${c}')">
+        <div class="corte-title" style="color:${CORTE_COLS[c-1]}">${CORTE_LABELS[c-1]}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="tag" style="background:${CORTE_COLS[c-1]}22;color:${CORTE_COLS[c-1]}">${items.length} apunte${items.length!==1?'s':''}</span>
+          <span style="color:var(--text3)">▾</span>
+        </div>
+      </div>
+      <div class="corte-body" id="cb-c${c}">
+        ${items.length?items.map(n=>`
+          <div class="note-card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+              <div>
+                ${n.materia?`<span class="tag tag-b" style="margin-bottom:5px;display:inline-flex">${n.materia}</span><br>`:''}
+                <div class="note-title">${n.titulo}</div>
+              </div>
+              <button class="xbtn" onclick="delNota(${n.id})">✕</button>
+            </div>
+            <div class="note-body">${n.cuerpo}</div>
+            <div class="note-footer">
+              <span style="font-size:10px;color:var(--text3)">${n.fecha}</span>
+            </div>
+          </div>`).join(''):
+          '<div class="empty" style="padding:20px">Sin apuntes en este corte.</div>'}
+      </div>
+    </div>`;
+  });
+  document.getElementById('notas-cortes').innerHTML=html;
+}
+function selectMat(m,btn){
+  selectedMat=m;
+  document.querySelectorAll('#subject-tabs .s-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderNotas();
+}
+ 
+// Init
+renderDashboard();renderTodo();renderProyectos();renderCursos('all');renderNotas();updateDatalists();
+</script>
+</body>
+</html>

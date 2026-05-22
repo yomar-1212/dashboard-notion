@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aseo y Cuidado Personal — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FAFCFF;--bg2:#EEF4FF;--bg3:#DCE9FF;
+  --text:#1a1f36;--text2:#3d5166;--text3:#8aa0b8;
+  --border:rgba(2,136,209,0.12);--border2:rgba(2,136,209,0.25);
+  --r:8px;--rl:14px;
+  --blue:#0288D1;--blue-bg:#E1F5FE;--blue-dk:#01579B;--blue-lt:#29B6F6;
+  --navy:#01579B;--navy-bg:#E3F2FD;--navy-dk:#003c6e;
+  --orange:#FF6D00;--orange-bg:#FFF3E0;--orange-dk:#E65100;--orange-lt:#FF9100;
+  --amber:#FFB300;--amber-bg:#FFF8E1;--amber-dk:#FF6F00;
+  --green:#00897B;--green-bg:#E0F2F1;--green-dk:#004D40;
+  --red:#E53935;--red-bg:#FFEBEE;--red-dk:#B71C1C;
+  --gold:#FF8F00;--gold-bg:#FFF8E1;--gold-dk:#E65100;
+  --purple:#5E35B1;--purple-bg:#EDE7F6;--purple-dk:#311B92;
+  --cyan:#0288D1;--cyan-bg:#E1F5FE;--cyan-dk:#01579B;
+  --indigo:#1565C0;--indigo-bg:#E3F2FD;--indigo-dk:#003c6e;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Jost',-apple-system,sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+.shell{max-width:1060px;margin:0 auto;padding:0 24px 60px}
+ 
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 0 16px;border-bottom:1px solid var(--border2);margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.back-link{font-size:11px;color:var(--text2);text-decoration:none;letter-spacing:.4px}.back-link:hover{color:var(--orange)}
+.app-title{font-family:var(--serif);font-size:24px;font-weight:700;color:var(--text)}
+.app-sub{font-size:11px;color:var(--text2);letter-spacing:.3px;margin-top:2px}
+.nav{display:flex;border-bottom:1px solid var(--border2);margin-bottom:24px;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{padding:9px 16px;border:none;background:none;font-size:12px;font-family:var(--sans);color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;letter-spacing:.3px}
+.nav-btn.active{color:var(--orange);border-bottom-color:var(--orange);font-weight:500}
+.nav-btn:hover{color:var(--orange)}
+.page{display:none}.page.on{display:block}
+ 
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:20px;margin-bottom:14px}
+.card-title{font-family:var(--serif);font-size:16px;font-weight:600;margin-bottom:16px;color:var(--text);display:flex;justify-content:space-between;align-items:center}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.form-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.form-row input,.form-row select{flex:1;min-width:120px;height:36px;border:1px solid var(--border2);border-radius:var(--r);padding:0 12px;font-size:12px;font-family:var(--sans);background:var(--bg);color:var(--text)}
+.form-row input:focus,.form-row select:focus{outline:none;border-color:var(--orange)}
+.btn-add{height:36px;padding:0 16px;background:var(--orange-bg);color:var(--orange-dk);border:none;border-radius:var(--r);font-size:12px;font-weight:500;font-family:var(--sans);cursor:pointer;white-space:nowrap}
+.btn-add:hover{opacity:.85}
+.btn-add.orange{background:var(--orange-bg);color:var(--orange-dk)}
+.btn-add.cyan{background:var(--cyan-bg);color:var(--cyan-dk)}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:var(--bg2);border-radius:var(--r);padding:14px 15px;border:1px solid var(--border)}
+.kpi-label{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;font-weight:500}
+.kpi-val{font-family:var(--serif);font-size:19px;font-weight:600;color:var(--text)}
+.kpi-val.b{color:var(--blue)}.kpi-val.g{color:var(--green)}.kpi-val.r{color:var(--red)}.kpi-val.o{color:var(--orange)}.kpi-val.c{color:var(--cyan)}
+.tag{display:inline-flex;align-items:center;padding:2px 9px;border-radius:4px;font-size:9px;font-weight:500;letter-spacing:.04em}
+.xbtn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:2px 6px;border-radius:4px}
+.xbtn:hover{color:var(--red);background:var(--red-bg)}
+.empty{text-align:center;padding:32px;color:var(--text3);font-size:12px}
+.prog{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:8px}
+.prog-fill{height:100%;border-radius:3px;transition:width .5s ease}
+ 
+/* INVENTORY GRID */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.product-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);
+  padding:14px 12px;position:relative;transition:transform .15s,box-shadow .15s;
+}
+.product-card:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(13,71,161,.1)}
+.product-card.agotado{opacity:.5}
+.product-card.agotado::after{content:'AGOTADO';position:absolute;top:8px;right:8px;font-size:8px;font-weight:700;background:var(--red-bg);color:var(--red);padding:2px 6px;border-radius:3px;letter-spacing:.05em}
+.product-icon{font-size:24px;margin-bottom:8px}
+.product-name{font-size:12px;font-weight:500;color:var(--text);margin-bottom:4px}
+.product-detail{font-size:10px;color:var(--text2);line-height:1.4}
+.product-actions{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.stock-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:3px 8px;border-radius:10px}
+ 
+/* EXERCISE */
+.week-routine{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px}
+.day-ex{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;min-height:120px}
+.day-ex-header{background:var(--orange);color:#fff;text-align:center;padding:5px 3px;font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.day-ex.rest .day-ex-header{background:var(--bg3);color:var(--text2)}
+.day-ex-body{padding:5px;font-size:9px;line-height:1.5}
+.ex-item{display:flex;align-items:flex-start;gap:4px;padding:3px 0;border-bottom:1px solid var(--border)}
+.ex-item:last-child{border-bottom:none}
+.ex-check{width:12px;height:12px;flex-shrink:0;accent-color:var(--orange)}
+.ex-text{color:var(--text);line-height:1.4}
+.ex-text.done{text-decoration:line-through;color:var(--text3)}
+ 
+/* META COUNTER */
+.meta-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:18px;margin-bottom:12px}
+.meta-name{font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:6px;color:var(--text)}
+.meta-prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px}
+.meta-stats{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--text2);margin-top:10px}
+.meta-stat strong{color:var(--text);font-weight:600}
+.racha{background:var(--orange-bg);color:var(--orange-dk);padding:3px 10px;border-radius:10px;font-size:10px;font-weight:500;display:inline-flex;align-items:center;gap:4px}
+ 
+@media(max-width:700px){.week-routine{grid-template-columns:repeat(4,1fr)}.shell{padding:0 14px 40px}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+ 
+<div class="topbar">
+  <a class="back-link" href="hub.html">← Volver al Hub</a>
+  <div><div class="app-title">Aseo y Cuidado Personal</div><div class="app-sub" id="cur-date"></div></div>
+  <div></div>
+</div>
+ 
+<div class="nav">
+  <button class="nav-btn active" onclick="goPage('inventario',this)">Inventario</button>
+  <button class="nav-btn" onclick="goPage('ejercicio',this)">Rutina de Ejercicio</button>
+  <button class="nav-btn" onclick="goPage('metas',this)">Metas y Progreso</button>
+</div>
+ 
+<!-- INVENTARIO -->
+<div id="page-inventario" class="page on">
+  <div class="kpi-row" id="inv-kpi"></div>
+  <div class="card">
+    <div class="card-title">Agregar Producto</div>
+    <div class="form-row">
+      <input type="text" id="pr-nombre" placeholder="Nombre del producto..." onkeypress="if(event.key==='Enter')addProducto()">
+      <select id="pr-cat">
+        <option>🧴 Cuidado de la piel</option><option>🧹 Limpieza corporal</option>
+        <option>💇 Cabello</option><option>🦷 Higiene bucal</option>
+        <option>🌿 Aromaterapia</option><option>💊 Suplementos</option>
+        <option>🧴 Maquillaje / Estética</option><option>🧻 Higiene general</option><option>Otro</option>
+      </select>
+      <input type="number" id="pr-stock" placeholder="Stock" min="0" step="1" style="max-width:80px">
+      <input type="text" id="pr-unidad" placeholder="und/ml/g" style="max-width:80px" value="und">
+      <input type="number" id="pr-min" placeholder="Mínimo" min="0" style="max-width:80px">
+      <input type="number" id="pr-precio" placeholder="Precio COP" min="0">
+      <select id="pr-freq">
+        <option value="diario">Uso diario</option>
+        <option value="semanal">Uso semanal</option>
+        <option value="mensual">Uso mensual</option>
+        <option value="ocasional">Ocasional</option>
+      </select>
+      <button class="btn-add" onclick="addProducto()">+ Agregar</button>
+    </div>
+  </div>
+  <div id="inv-by-cat"></div>
+</div>
+ 
+<!-- EJERCICIO -->
+<div id="page-ejercicio" class="page">
+  <div class="kpi-row" id="ej-kpi"></div>
+  <div class="card">
+    <div class="card-title">
+      <span>Rutina Semanal</span>
+      <button class="btn-add cyan" onclick="resetRutina()" style="font-size:11px;height:30px;padding:0 12px">↺ Reiniciar semana</button>
+    </div>
+    <div class="week-routine" id="week-routine"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Agregar Ejercicio al Día</div>
+    <div class="form-row">
+      <select id="ex-dia">
+        <option value="0">Domingo</option><option value="1">Lunes</option><option value="2">Martes</option>
+        <option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option>
+      </select>
+      <input type="text" id="ex-nombre" placeholder="Ejercicio (ej: 3x10 Sentadillas)...">
+      <select id="ex-tipo">
+        <option>💪 Fuerza</option><option>🏃 Cardio</option><option>🧘 Flexibilidad</option>
+        <option>🚴 Resistencia</option><option>🤸 Funcional</option><option>😴 Descanso</option>
+      </select>
+      <button class="btn-add orange" onclick="addEjercicio()">+ Agregar</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- METAS -->
+<div id="page-metas" class="page">
+  <div class="card">
+    <div class="card-title">Nueva Meta de Progreso</div>
+    <div class="form-row">
+      <input type="text" id="mt-nombre" placeholder="Nombre de la meta (ej: 30 días sin azúcar)...">
+      <input type="number" id="mt-total" placeholder="Total días/sesiones" min="1">
+      <select id="mt-cat">
+        <option>💪 Ejercicio</option><option>🥗 Nutrición</option><option>😴 Sueño</option>
+        <option>🧘 Mental</option><option>🧴 Skincare</option><option>Hábito general</option>
+      </select>
+      <input type="date" id="mt-inicio">
+      <button class="btn-add" onclick="addMeta()">+ Crear meta</button>
+    </div>
+  </div>
+  <div id="metas-list"></div>
+</div>
+ 
+</div>
+<script>
+const fmt=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',minimumFractionDigits:0,maximumFractionDigits:0}).format(n);
+const today=()=>new Date().toISOString().slice(0,10);
+document.getElementById('cur-date').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+if(document.getElementById('mt-inicio'))document.getElementById('mt-inicio').value=today();
+const DAYS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+ 
+let productos=[],rutina={},metasP=[];
+try{productos=JSON.parse(localStorage.getItem('as_pr')||'[]')}catch(e){}
+try{rutina=JSON.parse(localStorage.getItem('as_ru')||'{}')}catch(e){}
+try{metasP=JSON.parse(localStorage.getItem('as_mt')||'[]')}catch(e){}
+ 
+function persist(){
+  localStorage.setItem('as_pr',JSON.stringify(productos));
+  localStorage.setItem('as_ru',JSON.stringify(rutina));
+  localStorage.setItem('as_mt',JSON.stringify(metasP));
+}
+ 
+function goPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('on');
+  btn.classList.add('active');
+  if(id==='inventario')renderInventario();
+  if(id==='ejercicio')renderEjercicio();
+  if(id==='metas')renderMetas();
+}
+ 
+// --- INVENTARIO ---
+function addProducto(){
+  const n=document.getElementById('pr-nombre').value.trim();if(!n)return;
+  productos.push({
+    id:Date.now(),nombre:n,cat:document.getElementById('pr-cat').value,
+    stock:parseFloat(document.getElementById('pr-stock').value)||1,
+    unidad:document.getElementById('pr-unidad').value||'und',
+    min:parseFloat(document.getElementById('pr-min').value)||0,
+    precio:parseFloat(document.getElementById('pr-precio').value)||0,
+    freq:document.getElementById('pr-freq').value,agotado:false
+  });
+  persist();document.getElementById('pr-nombre').value='';document.getElementById('pr-stock').value='';document.getElementById('pr-precio').value='';
+  renderInventario();
+}
+function toggleAgotado(id){const p=productos.find(p=>p.id===id);if(p){p.agotado=!p.agotado;p.stock=p.agotado?0:p.min;}persist();renderInventario();}
+function delProducto(id){productos=productos.filter(p=>p.id!==id);persist();renderInventario();}
+ 
+function renderInventario(){
+  const total=productos.length;
+  const agotados=productos.filter(p=>p.agotado||p.stock<=p.min).length;
+  const valor=productos.reduce((a,b)=>a+b.precio,0);
+  const porReponer=productos.filter(p=>p.stock<=p.min&&!p.agotado).length;
+  document.getElementById('inv-kpi').innerHTML=`
+    <div class="kpi"><div class="kpi-label">Total productos</div><div class="kpi-val b">${total}</div></div>
+    <div class="kpi"><div class="kpi-label">Agotados</div><div class="kpi-val r">${agotados}</div></div>
+    <div class="kpi"><div class="kpi-label">Por reponer</div><div class="kpi-val o">${porReponer}</div></div>
+    <div class="kpi"><div class="kpi-label">Valor inventario</div><div class="kpi-val c">${fmt(valor)}</div></div>
+  `;
+  if(!productos.length){document.getElementById('inv-by-cat').innerHTML='<div class="empty" style="padding:40px">Sin productos. Agrega tu inventario de cuidado personal.</div>';return;}
+  const cats=[...new Set(productos.map(p=>p.cat))];
+  let html='';
+  cats.forEach(cat=>{
+    const items=productos.filter(p=>p.cat===cat);
+    html+=`<div class="card" style="margin-bottom:12px">
+      <div class="card-title" style="font-size:13px;margin-bottom:12px">${cat}</div>
+      <div class="product-grid">
+        ${items.map(p=>{
+          const lowStock=p.stock<=p.min;
+          const col=p.agotado?'#BF360C':lowStock?'#F57C00':'#1565C0';
+          return`<div class="product-card ${p.agotado?'agotado':''}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div class="product-name">${p.nombre}</div>
+              <button class="xbtn" onclick="delProducto(${p.id})">✕</button>
+            </div>
+            <div class="product-detail">
+              ${p.freq} · ${p.stock} ${p.unidad}
+              ${p.precio?`<br>${fmt(p.precio)}`:''}
+              ${lowStock&&!p.agotado?`<br><span style="color:var(--orange);font-weight:500">⚠ Stock bajo</span>`:''}
+            </div>
+            <div class="product-actions">
+              <div class="stock-badge" style="background:${p.agotado?'var(--red-bg)':lowStock?'var(--orange-bg)':'var(--blue-bg)'};color:${col}">
+                ${p.agotado?'Agotado':lowStock?'Bajo':'Disponible'}
+              </div>
+              <label style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--text2);cursor:pointer">
+                <input type="checkbox" ${p.agotado?'checked':''} onchange="toggleAgotado(${p.id})" style="accent-color:var(--orange)">
+                Agotado
+              </label>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  });
+  document.getElementById('inv-by-cat').innerHTML=html;
+}
+ 
+// --- EJERCICIO ---
+function addEjercicio(){
+  const dia=parseInt(document.getElementById('ex-dia').value);
+  const nombre=document.getElementById('ex-nombre').value.trim();
+  if(!nombre)return;
+  if(!rutina[dia])rutina[dia]=[];
+  rutina[dia].push({id:Date.now(),nombre,tipo:document.getElementById('ex-tipo').value,done:false});
+  persist();document.getElementById('ex-nombre').value='';renderEjercicio();
+}
+function toggleEjercicio(dia,id){
+  const ex=rutina[dia]?.find(e=>e.id===id);if(ex)ex.done=!ex.done;persist();renderEjercicio();
+}
+function delEjercicio(dia,id){
+  if(rutina[dia])rutina[dia]=rutina[dia].filter(e=>e.id!==id);persist();renderEjercicio();
+}
+function resetRutina(){
+  if(!confirm('¿Reiniciar todos los ejercicios como no completados?'))return;
+  Object.values(rutina).forEach(exs=>exs.forEach(e=>e.done=false));persist();renderEjercicio();
+}
+ 
+function renderEjercicio(){
+  const totalEx=Object.values(rutina).flat().length;
+  const doneEx=Object.values(rutina).flat().filter(e=>e.done).length;
+  const diasActivos=Object.keys(rutina).filter(d=>rutina[d]?.length>0).length;
+  document.getElementById('ej-kpi').innerHTML=`
+    <div class="kpi"><div class="kpi-label">Ejercicios totales</div><div class="kpi-val b">${totalEx}</div></div>
+    <div class="kpi"><div class="kpi-label">Completados</div><div class="kpi-val g">${doneEx}</div></div>
+    <div class="kpi"><div class="kpi-label">Días activos</div><div class="kpi-val o">${diasActivos}/7</div></div>
+    <div class="kpi"><div class="kpi-label">Progreso semana</div><div class="kpi-val c">${totalEx?Math.round(doneEx/totalEx*100):0}%</div></div>
+  `;
+  const html=DAYS.map((day,i)=>{
+    const exs=rutina[i]||[];
+    const isRest=exs.length===0||exs.some(e=>e.tipo==='😴 Descanso');
+    return`<div class="day-ex ${isRest&&exs.length===0?'rest':''}">
+      <div class="day-ex-header">${day.slice(0,3)}</div>
+      <div class="day-ex-body">
+        ${exs.length?exs.map(e=>`
+          <div class="ex-item">
+            <input type="checkbox" class="ex-check" ${e.done?'checked':''} onchange="toggleEjercicio(${i},${e.id})">
+            <div>
+              <div class="ex-text ${e.done?'done':''}">${e.nombre}</div>
+              <div style="font-size:8px;color:var(--text3)">${e.tipo}</div>
+            </div>
+            <button class="xbtn" onclick="delEjercicio(${i},${e.id})" style="font-size:10px;margin-left:auto">✕</button>
+          </div>`).join(''):`<div style="text-align:center;padding:10px 0;font-size:9px;color:var(--text3)">Descanso</div>`}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('week-routine').innerHTML=html;
+}
+ 
+// --- METAS ---
+function addMeta(){
+  const nombre=document.getElementById('mt-nombre').value.trim();
+  const total=parseInt(document.getElementById('mt-total').value);
+  if(!nombre||isNaN(total)||total<1)return;
+  metasP.push({id:Date.now(),nombre,total,cat:document.getElementById('mt-cat').value,inicio:document.getElementById('mt-inicio').value,progreso:0,racha:0,ultimoCheck:null});
+  persist();document.getElementById('mt-nombre').value='';document.getElementById('mt-total').value='';renderMetas();
+}
+function checkMeta(id){
+  const m=metasP.find(m=>m.id===id);if(!m)return;
+  const hoy=today();
+  if(m.ultimoCheck===hoy){alert('Ya marcaste este hábito hoy.');return;}
+  const ayer=new Date();ayer.setDate(ayer.getDate()-1);
+  const ayerStr=ayer.toISOString().slice(0,10);
+  m.racha=m.ultimoCheck===ayerStr?m.racha+1:1;
+  m.progreso=Math.min(m.total,m.progreso+1);
+  m.ultimoCheck=hoy;persist();renderMetas();
+}
+function delMeta(id){metasP=metasP.filter(m=>m.id!==id);persist();renderMetas();}
+function resetMeta(id){const m=metasP.find(m=>m.id===id);if(m&&confirm('¿Reiniciar progreso?')){m.progreso=0;m.racha=0;m.ultimoCheck=null;persist();renderMetas();}}
+ 
+function renderMetas(){
+  if(!metasP.length){document.getElementById('metas-list').innerHTML='<div class="empty">Sin metas creadas. ¡Crea tu primer hábito o meta de progreso!</div>';return;}
+  document.getElementById('metas-list').innerHTML=metasP.map(m=>{
+    const pct=Math.round(m.progreso/m.total*100);
+    const completed=m.progreso>=m.total;
+    const col=completed?'#2a6048':pct>50?'#1565C0':'#F57C00';
+    return`<div class="meta-card" style="${completed?'border-color:#2a6048;background:var(--green-bg)':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <div class="meta-name">${m.nombre} ${completed?'✅':''}</div>
+          <span style="font-size:10px;background:var(--indigo-bg);color:var(--indigo);padding:2px 8px;border-radius:4px">${m.cat}</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-add cyan" style="height:28px;padding:0 10px;font-size:11px" onclick="checkMeta(${m.id})" ${completed?'disabled':''}>✓ Hoy</button>
+          <button class="xbtn" onclick="delMeta(${m.id})">✕</button>
+        </div>
+      </div>
+      <div class="meta-prog-label">
+        <span>${m.progreso} / ${m.total} ${m.progreso>=m.total?'¡Meta cumplida!':''}</span>
+        <span style="font-weight:600;color:${col}">${pct}%</span>
+      </div>
+      <div class="prog"><div class="prog-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div class="meta-stats">
+        ${m.racha?`<span class="racha">🔥 Racha: ${m.racha} días</span>`:''}
+        ${m.inicio?`<span>Inicio: <strong>${m.inicio}</strong></span>`:''}
+        ${m.ultimoCheck?`<span>Último check: <strong>${m.ultimoCheck}</strong></span>`:''}
+        <button class="xbtn" onclick="resetMeta(${m.id})" style="font-size:10px;color:var(--text3)">↺ Reiniciar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+ 
+renderInventario();renderEjercicio();renderMetas();
+</script>
+</body>
+</html>

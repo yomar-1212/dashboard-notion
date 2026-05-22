@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alimentación — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FAFCFF;--bg2:#EEF4FF;--bg3:#DCE9FF;
+  --text:#1a1f36;--text2:#3d5166;--text3:#8aa0b8;
+  --border:rgba(2,136,209,0.12);--border2:rgba(2,136,209,0.25);
+  --r:8px;--rl:14px;
+  --blue:#0288D1;--blue-bg:#E1F5FE;--blue-dk:#01579B;--blue-lt:#29B6F6;
+  --navy:#01579B;--navy-bg:#E3F2FD;--navy-dk:#003c6e;
+  --orange:#FF6D00;--orange-bg:#FFF3E0;--orange-dk:#E65100;--orange-lt:#FF9100;
+  --amber:#FFB300;--amber-bg:#FFF8E1;--amber-dk:#FF6F00;
+  --green:#00897B;--green-bg:#E0F2F1;--green-dk:#004D40;
+  --red:#E53935;--red-bg:#FFEBEE;--red-dk:#B71C1C;
+  --gold:#FF8F00;--gold-bg:#FFF8E1;--gold-dk:#E65100;
+  --purple:#5E35B1;--purple-bg:#EDE7F6;--purple-dk:#311B92;
+  --cyan:#0288D1;--cyan-bg:#E1F5FE;--cyan-dk:#01579B;
+  --indigo:#1565C0;--indigo-bg:#E3F2FD;--indigo-dk:#003c6e;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Jost',-apple-system,sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+.shell{max-width:1060px;margin:0 auto;padding:0 24px 60px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 0 16px;border-bottom:1px solid var(--border2);margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.back-link{font-size:11px;color:var(--text2);text-decoration:none;letter-spacing:.4px}.back-link:hover{color:var(--orange)}
+.app-title{font-family:var(--serif);font-size:24px;font-weight:700}
+.app-sub{font-size:11px;color:var(--text2);letter-spacing:.3px;margin-top:2px}
+.nav{display:flex;border-bottom:1px solid var(--border2);margin-bottom:24px;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{padding:9px 16px;border:none;background:none;font-size:12px;font-family:var(--sans);color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;letter-spacing:.3px}
+.nav-btn.active{color:var(--orange);border-bottom-color:var(--orange);font-weight:500}
+.nav-btn:hover{color:var(--orange)}
+.page{display:none}.page.on{display:block}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:20px;margin-bottom:14px}
+.card-title{font-family:var(--serif);font-size:16px;font-weight:600;margin-bottom:16px;color:var(--text)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.form-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.form-row input,.form-row select{flex:1;min-width:120px;height:36px;border:1px solid var(--border2);border-radius:var(--r);padding:0 12px;font-size:12px;font-family:var(--sans);background:var(--bg);color:var(--text)}
+.form-row input:focus,.form-row select:focus{outline:none;border-color:var(--orange)}
+.btn-add{height:36px;padding:0 16px;background:var(--orange-bg);color:var(--orange-dk);border:none;border-radius:var(--r);font-size:12px;font-weight:500;font-family:var(--sans);cursor:pointer;white-space:nowrap}
+.btn-add:hover{opacity:.85}
+.btn-add.green{background:var(--green-bg);color:var(--green-dk)}
+.btn-add.gold{background:var(--gold-bg);color:var(--gold-dk)}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:var(--bg2);border-radius:var(--r);padding:14px 15px;border:1px solid var(--border)}
+.kpi-label{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;font-weight:500}
+.kpi-val{font-family:var(--serif);font-size:19px;font-weight:600;color:var(--text)}
+.kpi-val.g{color:var(--green)}.kpi-val.r{color:var(--red)}.kpi-val.b{color:var(--blue)}.kpi-val.go{color:var(--gold)}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:500}
+.xbtn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:2px 6px;border-radius:4px}
+.xbtn:hover{color:var(--red);background:var(--red-bg)}
+.empty{text-align:center;padding:32px;color:var(--text3);font-size:12px}
+.prog{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:8px}
+.prog-fill{height:100%;border-radius:3px}
+tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:7px 10px;border-bottom:1px solid var(--border);font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;font-weight:500;white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}
+ 
+/* MEAL PLAN */
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:16px}
+.day-col{border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.day-header{background:var(--orange);color:#fff;text-align:center;padding:6px 4px;font-size:10px;font-weight:500;letter-spacing:.05em}
+.meal-slot{padding:6px 8px;border-bottom:1px solid var(--border);min-height:50px;font-size:10px;line-height:1.4;position:relative;cursor:pointer;transition:background .15s}
+.meal-slot:hover{background:var(--blue-bg)}
+.meal-slot:last-child{border-bottom:none}
+.meal-label{font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:2px}
+.meal-content{color:var(--text);word-break:break-word}
+.meal-slot.editing textarea{width:100%;border:none;background:transparent;font-size:10px;font-family:var(--sans);color:var(--text);resize:none;outline:none}
+.week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.week-nav-btn{background:none;border:1px solid var(--border2);border-radius:var(--r);padding:5px 12px;font-size:12px;font-family:var(--sans);color:var(--text2);cursor:pointer}
+.week-nav-btn:hover{background:var(--bg2)}
+ 
+/* CAL BADGE */
+.cal-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500}
+@media(max-width:700px){.week-grid{grid-template-columns:repeat(4,1fr)}.shell{padding:0 14px 40px}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+<div class="topbar">
+  <a class="back-link" href="hub.html">← Volver al Hub</a>
+  <div><div class="app-title">Alimentación</div><div class="app-sub" id="cur-date"></div></div>
+  <div></div>
+</div>
+<div class="nav">
+  <button class="nav-btn active" onclick="goPage('inventario',this)">Inventario</button>
+  <button class="nav-btn" onclick="goPage('plan',this)">Plan Semanal</button>
+  <button class="nav-btn" onclick="goPage('presupuesto',this)">Presupuesto</button>
+  <button class="nav-btn" onclick="goPage('calorias',this)">Calorías</button>
+</div>
+ 
+<!-- INVENTARIO -->
+<div id="page-inventario" class="page on">
+  <div class="kpi-row" id="inv-kpi"></div>
+  <div class="card">
+    <div class="card-title">Inventario de Productos</div>
+    <div class="form-row">
+      <input type="text" id="pr-nombre" placeholder="Producto..." onkeypress="if(event.key==='Enter')addProducto()">
+      <input type="number" id="pr-cant" placeholder="Cant." min="0" step="any" style="max-width:80px">
+      <input type="text" id="pr-unidad" placeholder="Unidad" style="max-width:80px" value="und">
+      <input type="number" id="pr-precio" placeholder="Precio COP" min="0">
+      <select id="pr-cat">
+        <option>Frutas y verduras</option><option>Proteínas</option><option>Lácteos</option>
+        <option>Granos</option><option>Snacks</option><option>Bebidas</option>
+        <option>Condimentos</option><option>Congelados</option><option>Otro</option>
+      </select>
+      <select id="pr-periodo">
+        <option value="semana">Esta semana</option>
+        <option value="mes">Este mes</option>
+        <option value="staple">Básico permanente</option>
+      </select>
+      <button class="btn-add" onclick="addProducto()">+ Agregar</button>
+    </div>
+    <div id="pr-table"></div>
+  </div>
+</div>
+ 
+<!-- PLAN SEMANAL -->
+<div id="page-plan" class="page">
+  <div class="week-nav">
+    <button class="week-nav-btn" onclick="changeWeek(-1)">‹ Semana anterior</button>
+    <span style="font-family:var(--serif);font-size:15px;font-weight:600" id="week-label"></span>
+    <button class="week-nav-btn" onclick="changeWeek(1)">Semana siguiente ›</button>
+  </div>
+  <p style="font-size:11px;color:var(--text2);margin-bottom:12px">Haz clic en cualquier celda para escribir. Presiona Enter para guardar.</p>
+  <div class="week-grid" id="week-grid"></div>
+  <div class="card" style="margin-top:14px">
+    <div class="card-title">Lista de compras de la semana</div>
+    <div id="shopping-list"></div>
+  </div>
+</div>
+ 
+<!-- PRESUPUESTO -->
+<div id="page-presupuesto" class="page">
+  <div class="kpi-row" id="pres-kpi"></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Registrar Gasto Alimentario</div>
+      <div class="form-row">
+        <input type="date" id="gf-fecha">
+        <input type="text" id="gf-desc" placeholder="Descripción...">
+      </div>
+      <div class="form-row">
+        <input type="number" id="gf-monto" placeholder="Monto COP" min="0">
+        <select id="gf-tipo">
+          <option>Mercado semanal</option><option>Restaurante</option><option>Domicilio</option>
+          <option>Snacks</option><option>Bebidas</option><option>Otro</option>
+        </select>
+        <button class="btn-add gold" onclick="addGasto()">+ Agregar</button>
+      </div>
+      <div style="margin-top:14px">
+        <div class="kpi-label">Presupuesto semanal (COP)</div>
+        <div class="form-row" style="margin-top:6px">
+          <input type="number" id="presup-semanal" placeholder="Ej: 80000" min="0">
+          <button class="btn-add" onclick="guardarPresupuesto()">Guardar</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Esta semana</div>
+      <div id="pres-barra"></div>
+      <div id="gastos-list" style="margin-top:14px"></div>
+    </div>
+  </div>
+</div>
+ 
+<!-- CALORÍAS -->
+<div id="page-calorias" class="page">
+  <div class="kpi-row" id="cal-kpi"></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Registrar Comida</div>
+      <div class="form-row">
+        <input type="date" id="c-fecha">
+        <input type="text" id="c-alimento" placeholder="Alimento o plato...">
+      </div>
+      <div class="form-row">
+        <input type="number" id="c-cals" placeholder="Calorías" min="0">
+        <input type="number" id="c-prot" placeholder="Proteínas (g)" min="0" step="any">
+        <input type="number" id="c-carbs" placeholder="Carbos (g)" min="0" step="any">
+        <select id="c-tipo">
+          <option>Desayuno</option><option>Almuerzo</option><option>Cena</option><option>Merienda</option>
+        </select>
+        <button class="btn-add green" onclick="addComida()">+ Agregar</button>
+      </div>
+      <div style="margin-top:14px">
+        <div class="kpi-label">Meta calórica diaria</div>
+        <div class="form-row" style="margin-top:6px">
+          <input type="number" id="meta-cals" placeholder="Ej: 2000" min="0">
+          <button class="btn-add" onclick="guardarMetaCals()">Guardar</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Registro de hoy</div>
+      <div id="cals-hoy"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Historial de esta semana</div>
+    <div id="cals-semana"></div>
+  </div>
+</div>
+ 
+</div>
+<script>
+const fmt=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',minimumFractionDigits:0,maximumFractionDigits:0}).format(n);
+const today=()=>new Date().toISOString().slice(0,10);
+document.getElementById('cur-date').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+ 
+let productos=[],gastos=[],comidas=[],meals={},presupuesto=80000,metaCals=2000;
+try{productos=JSON.parse(localStorage.getItem('al_pr')||'[]')}catch(e){}
+try{gastos=JSON.parse(localStorage.getItem('al_gas')||'[]')}catch(e){}
+try{comidas=JSON.parse(localStorage.getItem('al_com')||'[]')}catch(e){}
+try{meals=JSON.parse(localStorage.getItem('al_meals')||'{}')}catch(e){}
+try{presupuesto=parseFloat(localStorage.getItem('al_pres'))||80000}catch(e){}
+try{metaCals=parseFloat(localStorage.getItem('al_metacals'))||2000}catch(e){}
+ 
+function persist(){
+  localStorage.setItem('al_pr',JSON.stringify(productos));
+  localStorage.setItem('al_gas',JSON.stringify(gastos));
+  localStorage.setItem('al_com',JSON.stringify(comidas));
+  localStorage.setItem('al_meals',JSON.stringify(meals));
+  localStorage.setItem('al_pres',presupuesto);
+  localStorage.setItem('al_metacals',metaCals);
+}
+ 
+let weekOffset=0;
+function getWeekDates(offset){
+  const d=new Date();d.setDate(d.getDate()-d.getDay()+offset*7);
+  return Array.from({length:7},(_,i)=>{const dd=new Date(d);dd.setDate(d.getDate()+i);return dd.toISOString().slice(0,10);});
+}
+ 
+function goPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('on');
+  btn.classList.add('active');
+  if(id==='inventario')renderInventario();
+  if(id==='plan')renderPlan();
+  if(id==='presupuesto')renderPresupuesto();
+  if(id==='calorias')renderCalorias();
+}
+ 
+if(document.getElementById('gf-fecha'))document.getElementById('gf-fecha').value=today();
+if(document.getElementById('c-fecha'))document.getElementById('c-fecha').value=today();
+if(document.getElementById('presup-semanal'))document.getElementById('presup-semanal').value=presupuesto;
+if(document.getElementById('meta-cals'))document.getElementById('meta-cals').value=metaCals;
+ 
+function addProducto(){
+  const n=document.getElementById('pr-nombre').value.trim();if(!n)return;
+  productos.push({id:Date.now(),nombre:n,cant:parseFloat(document.getElementById('pr-cant').value)||1,unidad:document.getElementById('pr-unidad').value||'und',precio:parseFloat(document.getElementById('pr-precio').value)||0,cat:document.getElementById('pr-cat').value,periodo:document.getElementById('pr-periodo').value,agotado:false});
+  persist();document.getElementById('pr-nombre').value='';document.getElementById('pr-cant').value='';document.getElementById('pr-precio').value='';renderInventario();
+}
+function toggleAgotado(id){const p=productos.find(p=>p.id===id);if(p)p.agotado=!p.agotado;persist();renderInventario();}
+function delProducto(id){productos=productos.filter(p=>p.id!==id);persist();renderInventario();}
+function renderInventario(){
+  const total=productos.reduce((a,b)=>a+b.precio,0);
+  const agotados=productos.filter(p=>p.agotado).length;
+  document.getElementById('inv-kpi').innerHTML=`
+    <div class="kpi"><div class="kpi-label">Total productos</div><div class="kpi-val b">${productos.length}</div></div>
+    <div class="kpi"><div class="kpi-label">Valor total</div><div class="kpi-val go">${fmt(total)}</div></div>
+    <div class="kpi"><div class="kpi-label">Agotados</div><div class="kpi-val r">${agotados}</div></div>
+    <div class="kpi"><div class="kpi-label">Disponibles</div><div class="kpi-val g">${productos.length-agotados}</div></div>
+  `;
+  if(!productos.length){document.getElementById('pr-table').innerHTML='<div class="empty">Sin productos. ¡Agrega tu inventario!</div>';return;}
+  const cats=[...new Set(productos.map(p=>p.cat))];
+  let html='';
+  cats.forEach(cat=>{
+    const items=productos.filter(p=>p.cat===cat);
+    html+=`<div style="margin-bottom:16px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);font-weight:500;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)">${cat}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
+        ${items.map(p=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg2);border-radius:var(--r);border:1px solid var(--border)${p.agotado?';opacity:.5':''}">
+          <input type="checkbox" ${p.agotado?'checked':''} onchange="toggleAgotado(${p.id})" style="accent-color:var(--green)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:500;${p.agotado?'text-decoration:line-through':''}">${p.nombre}</div>
+            <div style="font-size:10px;color:var(--text2)">${p.cant} ${p.unidad}${p.precio?' · '+fmt(p.precio):''}</div>
+          </div>
+          <button class="xbtn" onclick="delProducto(${p.id})">✕</button>
+        </div>`).join('')}
+      </div></div>`;
+  });
+  document.getElementById('pr-table').innerHTML=html;
+}
+ 
+function changeWeek(d){weekOffset+=d;renderPlan();}
+function renderPlan(){
+  const dates=getWeekDates(weekOffset);
+  const days=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const meals_labels=['Desayuno','Almuerzo','Cena'];
+  const start=new Date(dates[0]+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'});
+  const end=new Date(dates[6]+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'});
+  document.getElementById('week-label').textContent=`${start} — ${end}`;
+  
+  let html='';
+  dates.forEach((date,i)=>{
+    html+=`<div class="day-col">
+      <div class="day-header">${days[i]}<div style="font-size:8px;opacity:.8">${date.slice(8)}</div></div>
+      ${meals_labels.map((ml,mi)=>{
+        const key=`${date}_${mi}`;
+        const val=meals[key]||'';
+        return`<div class="meal-slot" id="slot_${key}" onclick="editSlot('${key}')">
+          <div class="meal-label">${ml}</div>
+          <div class="meal-content">${val}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  });
+  document.getElementById('week-grid').innerHTML=html;
+  
+  // Shopping list from inventory with agotados
+  const agotados=productos.filter(p=>p.agotado);
+  document.getElementById('shopping-list').innerHTML=agotados.length?
+    `<p style="font-size:12px;color:var(--text2);margin-bottom:10px">Productos marcados como agotados:</p>`+
+    agotados.map(p=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px">
+      <span>${p.nombre} (${p.cant} ${p.unidad})</span>
+      <span style="color:var(--text3)">${p.precio?fmt(p.precio):''}</span>
+    </div>`).join(''):
+    '<div class="empty" style="padding:16px">Sin productos agotados. Lista de compras vacía.</div>';
+}
+ 
+function editSlot(key){
+  const slot=document.getElementById('slot_'+key);
+  if(!slot)return;
+  const cur=meals[key]||'';
+  slot.classList.add('editing');
+  slot.innerHTML=`<div class="meal-label">${key.includes('_0')?'Desayuno':key.includes('_1')?'Almuerzo':'Cena'}</div><textarea onblur="saveSlot('${key}',this.value)" onkeypress="if(event.key==='Enter'){event.preventDefault();this.blur()}">${cur}</textarea>`;
+  slot.querySelector('textarea').focus();
+}
+function saveSlot(key,val){
+  meals[key]=val.trim();persist();renderPlan();
+}
+ 
+function addGasto(){
+  const desc=document.getElementById('gf-desc').value.trim();
+  const monto=parseFloat(document.getElementById('gf-monto').value);
+  if(!monto||isNaN(monto))return;
+  gastos.push({id:Date.now(),fecha:document.getElementById('gf-fecha').value,desc,monto,tipo:document.getElementById('gf-tipo').value});
+  persist();document.getElementById('gf-desc').value='';document.getElementById('gf-monto').value='';renderPresupuesto();
+}
+function guardarPresupuesto(){presupuesto=parseFloat(document.getElementById('presup-semanal').value)||presupuesto;persist();renderPresupuesto();}
+function delGasto(id){gastos=gastos.filter(g=>g.id!==id);persist();renderPresupuesto();}
+function renderPresupuesto(){
+  const dates=getWeekDates(0);
+  const semanaGastos=gastos.filter(g=>g.fecha>=dates[0]&&g.fecha<=dates[6]);
+  const totalSemana=semanaGastos.reduce((a,b)=>a+b.monto,0);
+  const totalMes=gastos.filter(g=>g.fecha.startsWith(today().slice(0,7))).reduce((a,b)=>a+b.monto,0);
+  const pct=Math.min(100,Math.round(totalSemana/presupuesto*100));
+  const col=pct>=100?'#BF360C':pct>=80?'#FF8F00':'#1565C0';
+  
+  document.getElementById('pres-kpi').innerHTML=`
+    <div class="kpi"><div class="kpi-label">Gastado esta semana</div><div class="kpi-val ${pct>=100?'r':'go'}">${fmt(totalSemana)}</div></div>
+    <div class="kpi"><div class="kpi-label">Presupuesto semanal</div><div class="kpi-val">${fmt(presupuesto)}</div></div>
+    <div class="kpi"><div class="kpi-label">Disponible</div><div class="kpi-val ${presupuesto-totalSemana>=0?'g':'r'}">${fmt(Math.max(0,presupuesto-totalSemana))}</div></div>
+    <div class="kpi"><div class="kpi-label">Gastado este mes</div><div class="kpi-val b">${fmt(totalMes)}</div></div>
+  `;
+  document.getElementById('pres-barra').innerHTML=`
+    <div style="font-size:11px;color:var(--text2);margin-bottom:8px">${fmt(totalSemana)} de ${fmt(presupuesto)} · ${pct}%</div>
+    <div class="prog" style="height:8px"><div class="prog-fill" style="width:${pct}%;background:${col}"></div></div>
+    ${pct>=100?`<div style="font-size:11px;color:var(--red);margin-top:6px;font-weight:500">⚠ Presupuesto superado esta semana</div>`:''}
+  `;
+  document.getElementById('gastos-list').innerHTML=semanaGastos.length?semanaGastos.sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(g=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px">
+      <div>
+        <div style="font-weight:500">${g.desc||g.tipo}</div>
+        <div style="font-size:10px;color:var(--text2)">${g.fecha} · ${g.tipo}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-weight:600;font-family:var(--serif)">${fmt(g.monto)}</span>
+        <button class="xbtn" onclick="delGasto(${g.id})">✕</button>
+      </div>
+    </div>`).join(''):'<div class="empty" style="padding:16px">Sin gastos esta semana.</div>';
+}
+ 
+function addComida(){
+  const alimento=document.getElementById('c-alimento').value.trim();
+  const cals=parseFloat(document.getElementById('c-cals').value)||0;
+  if(!alimento)return;
+  comidas.push({id:Date.now(),fecha:document.getElementById('c-fecha').value,alimento,cals,prot:parseFloat(document.getElementById('c-prot').value)||0,carbs:parseFloat(document.getElementById('c-carbs').value)||0,tipo:document.getElementById('c-tipo').value});
+  persist();['c-alimento','c-cals','c-prot','c-carbs'].forEach(id=>document.getElementById(id).value='');renderCalorias();
+}
+function guardarMetaCals(){metaCals=parseFloat(document.getElementById('meta-cals').value)||metaCals;persist();renderCalorias();}
+function delComida(id){comidas=comidas.filter(c=>c.id!==id);persist();renderCalorias();}
+function renderCalorias(){
+  const hoy=today();
+  const cHoy=comidas.filter(c=>c.fecha===hoy);
+  const totalCals=cHoy.reduce((a,b)=>a+b.cals,0);
+  const totalProt=cHoy.reduce((a,b)=>a+b.prot,0);
+  const totalCarbs=cHoy.reduce((a,b)=>a+b.carbs,0);
+  const pct=Math.min(100,Math.round(totalCals/metaCals*100));
+  const col=pct>110?'#BF360C':pct>=90?'#FF8F00':'#1565C0';
+  
+  document.getElementById('cal-kpi').innerHTML=`
+    <div class="kpi"><div class="kpi-label">Calorías hoy</div><div class="kpi-val ${pct>110?'r':'go'}">${totalCals}</div></div>
+    <div class="kpi"><div class="kpi-label">Meta diaria</div><div class="kpi-val">${metaCals} kcal</div></div>
+    <div class="kpi"><div class="kpi-label">Restantes</div><div class="kpi-val ${metaCals-totalCals>=0?'g':'r'}">${Math.max(0,metaCals-totalCals)}</div></div>
+    <div class="kpi"><div class="kpi-label">Proteínas</div><div class="kpi-val b">${Math.round(totalProt)}g</div></div>
+  `;
+  
+  document.getElementById('cals-hoy').innerHTML=`
+    <div style="font-size:11px;color:var(--text2);margin-bottom:6px">${totalCals} / ${metaCals} kcal · ${pct}%</div>
+    <div class="prog" style="height:8px;margin-bottom:14px"><div class="prog-fill" style="width:${pct}%;background:${col}"></div></div>
+    ${cHoy.length?cHoy.map(c=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <div>
+          <span style="font-weight:500">${c.alimento}</span>
+          <span style="font-size:10px;color:var(--text2);margin-left:6px">${c.tipo}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-weight:600;color:${col}">${c.cals} kcal</span>
+          ${c.prot?`<span style="font-size:10px;color:var(--text2)">${c.prot}g prot</span>`:''}
+          <button class="xbtn" onclick="delComida(${c.id})">✕</button>
+        </div>
+      </div>`).join(''):
+    '<div class="empty" style="padding:16px">Sin comidas registradas hoy.</div>'}`;
+  
+  // Semana
+  const dates=getWeekDates(0);
+  const html=dates.map(d=>{
+    const cDia=comidas.filter(c=>c.fecha===d);
+    const cTot=cDia.reduce((a,b)=>a+b.cals,0);
+    const pctD=Math.min(100,Math.round(cTot/metaCals*100));
+    const c2=pctD>110?'#BF360C':pctD>=90?'#FF8F00':'#1565C0';
+    return`<div style="display:grid;grid-template-columns:80px 1fr 60px;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;color:var(--text2)">${new Date(d+'T12:00:00').toLocaleDateString('es-CO',{weekday:'short',day:'numeric'})}</span>
+      <div class="prog" style="height:6px"><div class="prog-fill" style="width:${pctD}%;background:${c2}"></div></div>
+      <span style="font-size:11px;font-weight:500;text-align:right;color:${c2}">${cTot}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('cals-semana').innerHTML=html;
+}
+ 
+renderInventario();renderPresupuesto();renderCalorias();renderPlan();
+</script>
+</body>
+</html>

@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrera Musical — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FAFCFF;--bg2:#EEF4FF;--bg3:#DCE9FF;
+  --text:#1a1f36;--text2:#3d5166;--text3:#8aa0b8;
+  --border:rgba(2,136,209,0.12);--border2:rgba(2,136,209,0.25);
+  --r:8px;--rl:14px;
+  --blue:#0288D1;--blue-bg:#E1F5FE;--blue-dk:#01579B;--blue-lt:#29B6F6;
+  --navy:#01579B;--navy-bg:#E3F2FD;--navy-dk:#003c6e;
+  --orange:#FF6D00;--orange-bg:#FFF3E0;--orange-dk:#E65100;--orange-lt:#FF9100;
+  --amber:#FFB300;--amber-bg:#FFF8E1;--amber-dk:#FF6F00;
+  --green:#00897B;--green-bg:#E0F2F1;--green-dk:#004D40;
+  --red:#E53935;--red-bg:#FFEBEE;--red-dk:#B71C1C;
+  --gold:#FF8F00;--gold-bg:#FFF8E1;--gold-dk:#E65100;
+  --purple:#5E35B1;--purple-bg:#EDE7F6;--purple-dk:#311B92;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Jost',-apple-system,sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+.shell{max-width:1080px;margin:0 auto;padding:0 24px 80px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 0 18px;border-bottom:2px solid var(--border2);margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.back-link{font-size:11px;color:var(--text2);text-decoration:none;letter-spacing:.5px}.back-link:hover{color:var(--orange)}
+.app-title{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--text);text-align:center}
+.app-sub{font-size:11px;color:var(--text2);letter-spacing:.4px;text-align:center;margin-top:3px}
+.nav{display:flex;border-bottom:2px solid var(--border2);margin-bottom:26px;overflow-x:auto;scrollbar-width:none;gap:2px}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{padding:10px 16px;border:none;background:none;font-size:12px;font-family:var(--sans);color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;border-radius:var(--r) var(--r) 0 0;transition:all .15s}
+.nav-btn:hover{color:var(--orange);background:var(--orange-bg)}
+.nav-btn.active{color:var(--orange);border-bottom-color:var(--orange);font-weight:600;background:var(--orange-bg)}
+.page{display:none}.page.on{display:block}
+.card{background:var(--bg);border:1px solid var(--border2);border-radius:var(--rl);padding:22px;margin-bottom:16px;box-shadow:0 2px 12px rgba(2,136,209,.05)}
+.card-title{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--text);margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--bg);border:1px solid var(--border2);border-radius:var(--rl);padding:16px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kpi-c,var(--orange))}
+.kpi-label{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px;font-weight:600}
+.kpi-val{font-family:var(--serif);font-size:22px;font-weight:700}
+.kpi-sub{font-size:10px;color:var(--text3);margin-top:3px}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.f{display:flex;flex-direction:column;gap:5px}.f.wide{grid-column:1/-1}
+.fl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.f input,.f select,.f textarea{height:38px;border:1.5px solid var(--border2);border-radius:var(--r);padding:0 12px;font-size:12px;font-family:var(--sans);background:var(--bg);color:var(--text);transition:border-color .2s}
+.f textarea{height:72px;padding:10px 12px;resize:vertical}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--orange)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.btn-save{padding:10px 22px;border:none;border-radius:var(--r);font-size:12px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:opacity .2s,transform .1s}
+.btn-save:hover{opacity:.88;transform:translateY(-1px)}
+.btn-save.orange{background:var(--orange);color:#fff}
+.btn-save.blue{background:var(--blue);color:#fff}
+.btn-save.purple{background:var(--purple);color:#fff}
+.btn-save.green{background:var(--green);color:#fff}
+.btn-save.amber{background:var(--amber);color:var(--amber-dk)}
+.btn-ghost{padding:9px 16px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:12px;font-family:var(--sans);background:transparent;color:var(--text2);cursor:pointer}
+.btn-ghost:hover{background:var(--bg2)}
+.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:9px;font-weight:600;letter-spacing:.05em}
+.xbtn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:3px 7px;border-radius:5px}
+.xbtn:hover{color:var(--red);background:var(--red-bg)}
+.empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px}
+.empty-icon{font-size:30px;margin-bottom:10px;opacity:.4;display:block}
+.prog{height:6px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;border-radius:4px;transition:width .6s ease}
+ 
+/* 12 WEEKS GRID */
+.weeks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:14px}
+.week-card{
+  border:1.5px solid var(--border2);border-radius:var(--rl);padding:14px;
+  background:var(--bg2);position:relative;transition:transform .15s,box-shadow .15s;
+  cursor:pointer;
+}
+.week-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(255,109,0,.12)}
+.week-card.active-week{border-color:var(--orange);background:var(--orange-bg)}
+.week-card.done-week{border-color:var(--green);background:var(--green-bg);opacity:.8}
+.week-num{font-family:var(--serif);font-size:28px;font-weight:700;opacity:.15;position:absolute;top:8px;right:12px;color:var(--orange)}
+.week-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:5px}
+.week-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;min-height:18px}
+.week-task-count{font-size:10px;color:var(--text3)}
+.week-detail{display:none;border-top:1px solid var(--border);margin-top:10px;padding-top:10px}
+.week-card.expanded .week-detail{display:block}
+.task-mini{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px}
+.task-mini input{accent-color:var(--orange);width:14px;height:14px}
+.task-text.done{text-decoration:line-through;color:var(--text3)}
+ 
+/* IDEAS / CONTENT */
+.idea-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);padding:16px;margin-bottom:10px;position:relative;transition:transform .15s}
+.idea-card:hover{transform:translateX(3px)}
+.idea-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:2px 0 0 2px;background:var(--card-accent,var(--orange))}
+.idea-title{font-weight:600;font-size:14px;margin-bottom:5px;color:var(--text)}
+.idea-body{font-size:12px;color:var(--text2);line-height:1.7}
+ 
+/* GEAR */
+.gear-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.gear-row:last-child{border-bottom:none}
+.gear-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:var(--blue-bg)}
+.gear-name{font-size:13px;font-weight:600;flex:1}
+.gear-detail{font-size:10px;color:var(--text2);margin-top:2px}
+.gear-status{font-size:10px;padding:3px 9px;border-radius:10px;font-weight:600}
+.gs-owned{background:var(--green-bg);color:var(--green-dk)}
+.gs-want{background:var(--orange-bg);color:var(--orange-dk)}
+.gs-renting{background:var(--blue-bg);color:var(--blue-dk)}
+ 
+@media(max-width:640px){.shell{padding:0 14px 60px}.grid2{grid-template-columns:1fr}.weeks-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+ 
+<div class="topbar">
+  <a class="back-link" href="hub.html">← Hub</a>
+  <div>
+    <div class="app-title">🎵 Carrera Musical</div>
+    <div class="app-sub" id="cur-date"></div>
+  </div>
+  <div style="width:60px"></div>
+</div>
+ 
+<div class="nav">
+  <button class="nav-btn active" onclick="goPage('dashboard',this)">Dashboard</button>
+  <button class="nav-btn" onclick="goPage('semanas',this)">12 Semanas</button>
+  <button class="nav-btn" onclick="goPage('proyectos',this)">Proyectos</button>
+  <button class="nav-btn" onclick="goPage('ideas',this)">Ideas Visuales</button>
+  <button class="nav-btn" onclick="goPage('contenido',this)">Contenido</button>
+  <button class="nav-btn" onclick="goPage('gear',this)">Gear / Artículos</button>
+</div>
+ 
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page on">
+  <div class="kpi-row" id="mus-kpi"></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">⏱ Semana actual del plan</div>
+      <div id="dash-week"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🎯 Proyectos activos</div>
+      <div id="dash-projs"></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">📲 Próximo contenido</div>
+      <div id="dash-content"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">💡 Ideas recientes</div>
+      <div id="dash-ideas"></div>
+    </div>
+  </div>
+</div>
+ 
+<!-- 12 SEMANAS -->
+<div id="page-semanas" class="page">
+  <div class="card">
+    <div class="card-title">
+      <span>Plan de 12 Semanas — El Año de 12 Semanas</span>
+      <button class="btn-ghost" onclick="resetPlan()" style="font-size:11px;padding:6px 12px">↺ Nuevo plan</button>
+    </div>
+    <div class="fg">
+      <div class="f"><div class="fl">Objetivo principal del plan</div><input type="text" id="plan-objetivo" placeholder="Ej: Lanzar mi primer EP antes de las 12 semanas..."></div>
+      <div class="f"><div class="fl">Fecha de inicio</div><input type="date" id="plan-inicio"></div>
+      <button class="btn-save orange" onclick="guardarPlan()" style="height:38px;align-self:flex-end;padding:0 20px">Guardar objetivo</button>
+    </div>
+    <div id="plan-objetivo-display" style="margin-bottom:14px"></div>
+    <p style="font-size:11px;color:var(--text2);margin-bottom:10px">Haz clic en una semana para expandirla y agregar tareas. La semana actual se resalta en naranja.</p>
+    <div class="weeks-grid" id="weeks-grid"></div>
+  </div>
+  <!-- Add task to week -->
+  <div class="card">
+    <div class="card-title">Agregar tarea a una semana</div>
+    <div class="fg">
+      <div class="f"><div class="fl">Semana</div>
+        <select id="wt-semana">
+          <option value="1">Semana 1</option><option value="2">Semana 2</option><option value="3">Semana 3</option>
+          <option value="4">Semana 4</option><option value="5">Semana 5</option><option value="6">Semana 6</option>
+          <option value="7">Semana 7</option><option value="8">Semana 8</option><option value="9">Semana 9</option>
+          <option value="10">Semana 10</option><option value="11">Semana 11</option><option value="12">Semana 12</option>
+        </select>
+      </div>
+      <div class="f"><div class="fl">Título de semana (opcional)</div><input type="text" id="wt-titulo" placeholder="Ej: Composición y bocetos..."></div>
+      <div class="f"><div class="fl">Tarea</div><input type="text" id="wt-tarea" placeholder="Ej: Grabar demo de pista 1..." onkeypress="if(event.key==='Enter')addWeekTask()"></div>
+    </div>
+    <div class="btn-row"><button class="btn-save orange" onclick="addWeekTask()">+ Agregar tarea</button></div>
+  </div>
+</div>
+ 
+<!-- PROYECTOS MUSICALES -->
+<div id="page-proyectos" class="page">
+  <div class="card">
+    <div class="card-title">Nuevo Proyecto Musical</div>
+    <div class="fg">
+      <div class="f"><div class="fl">Nombre del proyecto</div><input type="text" id="mp-nombre" placeholder="Ej: EP debut, Álbum, Single..."></div>
+      <div class="f"><div class="fl">Tipo</div>
+        <select id="mp-tipo"><option>Single</option><option>EP</option><option>Álbum</option><option>Mixtape</option><option>Cover</option><option>Colaboración</option><option>Otro</option></select>
+      </div>
+      <div class="f"><div class="fl">Género</div><input type="text" id="mp-genero" placeholder="Ej: Hip-Hop, Pop, Latin..."></div>
+      <div class="f"><div class="fl">Fecha meta</div><input type="date" id="mp-fecha"></div>
+      <div class="f"><div class="fl">Avance %</div><input type="number" id="mp-avance" placeholder="0" min="0" max="100"></div>
+      <div class="f"><div class="fl">Estado</div>
+        <select id="mp-estado"><option>En composición</option><option>En grabación</option><option>En mezcla</option><option>En masterización</option><option>Listo para lanzar</option><option>Publicado</option></select>
+      </div>
+      <div class="f wide"><div class="fl">Descripción / Concepto</div><textarea id="mp-desc" placeholder="Concepto del proyecto, referencias, mood..."></textarea></div>
+    </div>
+    <div class="btn-row"><button class="btn-save purple" onclick="addProyecto()">+ Crear proyecto</button></div>
+  </div>
+  <div id="mp-list" class="grid3" style="margin-top:4px"></div>
+</div>
+ 
+<!-- IDEAS VISUALES -->
+<div id="page-ideas" class="page">
+  <div class="card">
+    <div class="card-title">Nueva Idea Visual / Concepto</div>
+    <div class="fg">
+      <div class="f"><div class="fl">Título</div><input type="text" id="id-titulo" placeholder="Ej: Portada EP - tema oscuro..."></div>
+      <div class="f"><div class="fl">Categoría</div>
+        <select id="id-cat"><option>Portada</option><option>Videoclip</option><option>Foto artística</option><option>Branding</option><option>Escenario</option><option>Vestuario</option><option>Mood board</option><option>Otro</option></select>
+      </div>
+      <div class="f"><div class="fl">Proyecto asociado</div><input type="text" id="id-proy" placeholder="Nombre del proyecto..."></div>
+      <div class="f"><div class="fl">Color palette / referencias</div><input type="text" id="id-refs" placeholder="Ej: tonos tierra, cine noir..."></div>
+      <div class="f wide"><div class="fl">Descripción detallada</div><textarea id="id-desc" placeholder="Describe la idea visual: escena, iluminación, emoción, referencias..."></textarea></div>
+    </div>
+    <div class="btn-row"><button class="btn-save blue" onclick="addIdea()">+ Guardar idea</button></div>
+  </div>
+  <div id="ideas-list"></div>
+</div>
+ 
+<!-- CONTENIDO -->
+<div id="page-contenido" class="page">
+  <div class="card">
+    <div class="card-title">Nuevo Contenido</div>
+    <div class="fg">
+      <div class="f"><div class="fl">Título / Tema</div><input type="text" id="co-titulo" placeholder="Ej: Reels de proceso en el estudio..."></div>
+      <div class="f"><div class="fl">Plataforma</div>
+        <select id="co-plat"><option>Instagram</option><option>TikTok</option><option>YouTube</option><option>Spotify</option><option>SoundCloud</option><option>Twitter/X</option><option>Facebook</option><option>Otro</option></select>
+      </div>
+      <div class="f"><div class="fl">Tipo</div>
+        <select id="co-tipo"><option>Reels / Short</option><option>Post imagen</option><option>Story</option><option>Video largo</option><option>Podcast</option><option>Live</option><option>Lanzamiento</option></select>
+      </div>
+      <div class="f"><div class="fl">Fecha programada</div><input type="date" id="co-fecha"></div>
+      <div class="f"><div class="fl">Estado</div>
+        <select id="co-estado"><option>Idea</option><option>En producción</option><option>Listo para publicar</option><option>Publicado</option></select>
+      </div>
+      <div class="f wide"><div class="fl">Descripción / Caption ideas</div><textarea id="co-desc" placeholder="De qué trata, qué mostrar, qué decir..."></textarea></div>
+    </div>
+    <div class="btn-row"><button class="btn-save amber" onclick="addContenido()">+ Agregar contenido</button></div>
+  </div>
+  <div class="grid2" style="margin-bottom:14px">
+    <div class="card" style="margin-bottom:0"><div class="card-title" style="margin-bottom:12px">📊 Por publicar</div><div id="co-pendientes"></div></div>
+    <div class="card" style="margin-bottom:0"><div class="card-title" style="margin-bottom:12px">✅ Publicados</div><div id="co-publicados"></div></div>
+  </div>
+</div>
+ 
+<!-- GEAR -->
+<div id="page-gear" class="page">
+  <div class="card">
+    <div class="card-title">Agregar Artículo / Gear</div>
+    <div class="fg">
+      <div class="f"><div class="fl">Nombre</div><input type="text" id="ge-nombre" placeholder="Ej: Audio-Technica AT2020..."></div>
+      <div class="f"><div class="fl">Categoría</div>
+        <select id="ge-cat">
+          <option>🎙 Micrófono</option><option>🎧 Auriculares</option><option>🖥 Interfaz de audio</option>
+          <option>🎹 Teclado / Controlador</option><option>💻 Software / DAW</option>
+          <option>🔊 Monitores</option><option>🎚 Mixer / Consola</option>
+          <option>🎸 Instrumento</option><option>🔌 Cables / Accesorios</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="f"><div class="fl">Estado</div>
+        <select id="ge-status"><option value="owned">Lo tengo</option><option value="want">Lo quiero</option><option value="renting">Alquilado</option></select>
+      </div>
+      <div class="f"><div class="fl">Precio (COP)</div><input type="number" id="ge-precio" placeholder="0" min="0"></div>
+      <div class="f"><div class="fl">Marca / Modelo</div><input type="text" id="ge-marca" placeholder="Ej: Focusrite Scarlett 2i2"></div>
+      <div class="f wide"><div class="fl">Notas</div><input type="text" id="ge-notas" placeholder="Para qué lo usarás, link de compra..."></div>
+    </div>
+    <div class="btn-row"><button class="btn-save green" onclick="addGear()">+ Agregar artículo</button></div>
+  </div>
+  <div id="gear-kpi" class="kpi-row" style="margin-top:4px"></div>
+  <div id="gear-list"></div>
+</div>
+ 
+</div>
+<script>
+const fmt=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',minimumFractionDigits:0,maximumFractionDigits:0}).format(n);
+const today=()=>new Date().toISOString().slice(0,10);
+const fmt_d=d=>d?new Date(d+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'}):'';
+document.getElementById('cur-date').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('plan-inicio').value=today();
+document.getElementById('mp-fecha').value=today();
+document.getElementById('co-fecha').value=today();
+ 
+let plan={objetivo:'',inicio:'',weeks:{}},proyectos=[],ideas=[],contenido=[],gear=[];
+try{plan=JSON.parse(localStorage.getItem('mu_plan')||'{}')||{objetivo:'',inicio:'',weeks:{}}}catch(e){}
+try{proyectos=JSON.parse(localStorage.getItem('mu_pr')||'[]')}catch(e){}
+try{ideas=JSON.parse(localStorage.getItem('mu_id')||'[]')}catch(e){}
+try{contenido=JSON.parse(localStorage.getItem('mu_co')||'[]')}catch(e){}
+try{gear=JSON.parse(localStorage.getItem('mu_ge')||'[]')}catch(e){}
+if(!plan.weeks)plan.weeks={};
+ 
+function persist(){
+  localStorage.setItem('mu_plan',JSON.stringify(plan));
+  localStorage.setItem('mu_pr',JSON.stringify(proyectos));
+  localStorage.setItem('mu_id',JSON.stringify(ideas));
+  localStorage.setItem('mu_co',JSON.stringify(contenido));
+  localStorage.setItem('mu_ge',JSON.stringify(gear));
+}
+ 
+function goPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('on');btn.classList.add('active');
+  const map={dashboard:renderDashboard,semanas:renderSemanas,proyectos:renderProyectos,ideas:renderIdeas,contenido:renderContenido,gear:renderGear};
+  map[id]?.();
+}
+ 
+/* ── DASHBOARD ── */
+function renderDashboard(){
+  const totalTasks=Object.values(plan.weeks||{}).flat().filter(t=>typeof t==='object'&&t.texto).length;
+  const doneTasks=Object.values(plan.weeks||{}).flat().filter(t=>typeof t==='object'&&t.done).length;
+  const activeProj=proyectos.filter(p=>p.estado!=='Publicado').length;
+  const pendContent=contenido.filter(c=>c.estado!=='Publicado').length;
+  document.getElementById('mus-kpi').innerHTML=`
+    <div class="kpi" style="--kpi-c:var(--orange)"><div class="kpi-label">Tareas del plan</div><div class="kpi-val">${doneTasks}/${totalTasks}</div></div>
+    <div class="kpi" style="--kpi-c:var(--purple)"><div class="kpi-label">Proyectos activos</div><div class="kpi-val">${activeProj}</div></div>
+    <div class="kpi" style="--kpi-c:var(--blue)"><div class="kpi-label">Contenido pendiente</div><div class="kpi-val">${pendContent}</div></div>
+    <div class="kpi" style="--kpi-c:var(--green)"><div class="kpi-label">Ideas visuales</div><div class="kpi-val">${ideas.length}</div></div>
+    <div class="kpi" style="--kpi-c:var(--amber)"><div class="kpi-label">Gear registrado</div><div class="kpi-val">${gear.length}</div></div>
+  `;
+  
+  // Current week
+  const semActual=getSemanActual();
+  const semTasks=(plan.weeks[semActual]||[]).filter(t=>typeof t==='object');
+  document.getElementById('dash-week').innerHTML=plan.objetivo?`
+    <div style="background:var(--orange-bg);border-radius:var(--r);padding:12px 14px;margin-bottom:12px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--orange-dk);font-weight:600;margin-bottom:4px">Objetivo del plan</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text)">${plan.objetivo}</div>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">Semana ${semActual} de 12</div>
+    ${semTasks.length?semTasks.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;color:${t.done?'var(--text3)':'var(--text)'}"><span style="color:${t.done?'var(--green)':'var(--text3)'}">●</span><span style="${t.done?'text-decoration:line-through':''}">${t.texto}</span></div>`).join(''):`<div style="font-size:12px;color:var(--text3)">Sin tareas esta semana.</div>`}`
+    :`<div class="empty"><span class="empty-icon">📅</span>Define tu objetivo de 12 semanas.</div>`;
+  
+  document.getElementById('dash-projs').innerHTML=proyectos.length?proyectos.slice(0,4).map(p=>`
+    <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:13px;font-weight:600">${p.nombre}</span>
+        <span style="font-size:10px;color:var(--text2)">${p.tipo}</span>
+      </div>
+      <div style="font-size:10px;color:var(--text2);margin-bottom:5px">${p.estado}</div>
+      <div class="prog"><div class="prog-fill" style="width:${p.avance||0}%;background:var(--purple)"></div></div>
+    </div>`).join(''):
+    `<div class="empty"><span class="empty-icon">🎸</span>Sin proyectos.</div>`;
+  
+  const nextContent=contenido.filter(c=>c.estado!=='Publicado').sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')).slice(0,4);
+  document.getElementById('dash-content').innerHTML=nextContent.length?nextContent.map(c=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:18px">${{Instagram:'📸',TikTok:'🎵',YouTube:'▶️',Spotify:'🎧'}[c.plat]||'📲'}</div>
+      <div style="flex:1"><div style="font-size:12px;font-weight:600">${c.titulo}</div>
+        <div style="font-size:10px;color:var(--text2)">${c.plat} · ${c.tipo} ${c.fecha?'· '+fmt_d(c.fecha):''}</div></div>
+    </div>`).join(''):
+    `<div class="empty"><span class="empty-icon">📲</span>Sin contenido pendiente.</div>`;
+  
+  document.getElementById('dash-ideas').innerHTML=ideas.length?ideas.slice(0,4).map(i=>`
+    <div style="padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;font-weight:600">${i.titulo}</div>
+      <div style="font-size:10px;color:var(--text2)">${i.cat}${i.proy?' · '+i.proy:''}</div>
+    </div>`).join(''):
+    `<div class="empty"><span class="empty-icon">💡</span>Sin ideas guardadas.</div>`;
+}
+ 
+/* ── SEMANAS ── */
+function getSemanActual(){
+  if(!plan.inicio)return 1;
+  const diff=Math.floor((new Date(today())-new Date(plan.inicio))/(7*24*3600*1000));
+  return Math.max(1,Math.min(12,diff+1));
+}
+ 
+function guardarPlan(){
+  plan.objetivo=document.getElementById('plan-objetivo').value.trim();
+  plan.inicio=document.getElementById('plan-inicio').value;
+  persist();renderSemanas();
+}
+function resetPlan(){if(!confirm('¿Comenzar un nuevo plan de 12 semanas?'))return;plan={objetivo:'',inicio:'',weeks:{}};persist();renderSemanas();}
+ 
+function addWeekTask(){
+  const s=parseInt(document.getElementById('wt-semana').value);
+  const t=document.getElementById('wt-tarea').value.trim();
+  const titulo=document.getElementById('wt-titulo').value.trim();
+  if(!t)return;
+  if(!plan.weeks[s])plan.weeks[s]={titulo:'',tasks:[]};
+  if(typeof plan.weeks[s]==='object'&&!Array.isArray(plan.weeks[s])){
+    if(titulo)plan.weeks[s].titulo=titulo;
+    plan.weeks[s].tasks.push({id:Date.now(),texto:t,done:false});
+  } else {
+    // Migrate
+    plan.weeks[s]={titulo:titulo||'',tasks:[{id:Date.now(),texto:t,done:false}]};
+  }
+  persist();document.getElementById('wt-tarea').value='';renderSemanas();
+}
+function toggleWeekTask(s,id){
+  const w=plan.weeks[s];if(!w)return;
+  const tasks=Array.isArray(w)?w:w.tasks;
+  const t=tasks.find(t=>t.id===id);if(t)t.done=!t.done;persist();renderSemanas();
+}
+function delWeekTask(s,id){
+  if(!plan.weeks[s])return;
+  if(Array.isArray(plan.weeks[s]))plan.weeks[s]=plan.weeks[s].filter(t=>t.id!==id);
+  else plan.weeks[s].tasks=plan.weeks[s].tasks.filter(t=>t.id!==id);
+  persist();renderSemanas();
+}
+function toggleWeekExpand(s){document.getElementById(`wc-${s}`)?.classList.toggle('expanded')}
+ 
+function renderSemanas(){
+  if(plan.objetivo)document.getElementById('plan-objetivo-display').innerHTML=
+    `<div style="background:var(--orange-bg);border-radius:var(--r);padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-size:9px;text-transform:uppercase;color:var(--orange-dk);letter-spacing:.07em;font-weight:600;margin-bottom:3px">Objetivo del plan</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">${plan.objetivo}</div>
+        ${plan.inicio?`<div style="font-size:10px;color:var(--text2);margin-top:3px">Inicio: ${fmt_d(plan.inicio)} · Fin: ${fmt_d(getEndDate())}</div>`:''}
+      </div>
+      <div style="font-size:22px">🎯</div>
+    </div>`;
+  else document.getElementById('plan-objetivo-display').innerHTML='';
+  
+  const semActual=getSemanActual();
+  if(plan.inicio)document.getElementById('plan-inicio').value=plan.inicio;
+  if(plan.objetivo)document.getElementById('plan-objetivo').value=plan.objetivo;
+  
+  const html=Array.from({length:12},(_,i)=>{
+    const s=i+1;
+    const wData=plan.weeks[s];
+    const tasks=!wData?[]:Array.isArray(wData)?wData:(wData.tasks||[]);
+    const wtitulo=!wData?'':Array.isArray(wData)?'':wData.titulo||'';
+    const done=tasks.filter(t=>t.done).length;
+    const isActive=s===semActual;
+    const isDone=done===tasks.length&&tasks.length>0;
+    return`<div class="week-card ${isActive?'active-week':''} ${isDone?'done-week':''}" id="wc-${s}" onclick="toggleWeekExpand(${s})">
+      <div class="week-num">${s}</div>
+      <div class="week-label">Semana ${s} ${isActive?'← Actual':''}</div>
+      <div class="week-title">${wtitulo||'(sin título)'}</div>
+      <div class="week-task-count">${tasks.length?`${done}/${tasks.length} tareas`:'Sin tareas'}</div>
+      ${tasks.length?`<div class="prog" style="margin-top:6px"><div class="prog-fill" style="width:${tasks.length?Math.round(done/tasks.length*100):0}%;background:${isActive?'#FF6D00':'#0288D1'}"></div></div>`:''}
+      <div class="week-detail" onclick="event.stopPropagation()">
+        ${tasks.map(t=>`
+          <div class="task-mini">
+            <input type="checkbox" ${t.done?'checked':''} onchange="toggleWeekTask(${s},${t.id})" onclick="event.stopPropagation()">
+            <span class="task-text ${t.done?'done':''}">${t.texto}</span>
+            <button class="xbtn" onclick="delWeekTask(${s},${t.id});event.stopPropagation()" style="font-size:10px;margin-left:auto">✕</button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('weeks-grid').innerHTML=html;
+}
+ 
+function getEndDate(){
+  if(!plan.inicio)return '';
+  const d=new Date(plan.inicio);d.setDate(d.getDate()+83);return d.toISOString().slice(0,10);
+}
+ 
+/* ── PROYECTOS ── */
+const PROJ_COLS=['#5E35B1','#0288D1','#FF6D00','#00897B','#FF8F00','#E53935'];
+function addProyecto(){
+  const n=document.getElementById('mp-nombre').value.trim();if(!n)return;
+  proyectos.push({id:Date.now(),nombre:n,tipo:document.getElementById('mp-tipo').value,genero:document.getElementById('mp-genero').value,fecha:document.getElementById('mp-fecha').value,avance:parseInt(document.getElementById('mp-avance').value)||0,estado:document.getElementById('mp-estado').value,desc:document.getElementById('mp-desc').value});
+  persist();['mp-nombre','mp-genero','mp-avance','mp-desc'].forEach(id=>document.getElementById(id).value='');renderProyectos();
+}
+function delProyecto(id){proyectos=proyectos.filter(p=>p.id!==id);persist();renderProyectos();}
+function updateAvance(id,v){const p=proyectos.find(p=>p.id===id);if(p){p.avance=parseInt(v);persist();document.getElementById('av-'+id).textContent=v+'%';document.getElementById('pf-'+id).style.width=v+'%';}}
+function renderProyectos(){
+  if(!proyectos.length){document.getElementById('mp-list').innerHTML=`<div class="empty" style="grid-column:1/-1"><span class="empty-icon">🎸</span>Sin proyectos musicales.</div>`;return;}
+  document.getElementById('mp-list').innerHTML=proyectos.map((p,i)=>{
+    const col=PROJ_COLS[i%PROJ_COLS.length];
+    return`<div style="background:var(--bg2);border:1.5px solid var(--border2);border-radius:var(--rl);padding:16px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${col}"></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;margin-top:4px">
+        <span style="font-size:10px;background:${col}22;color:${col};padding:2px 8px;border-radius:10px;font-weight:600">${p.tipo}</span>
+        <button class="xbtn" onclick="delProyecto(${p.id})">✕</button>
+      </div>
+      <div style="font-family:var(--serif);font-size:16px;font-weight:700;margin-bottom:4px">${p.nombre}</div>
+      <div style="font-size:10px;color:var(--text2);margin-bottom:8px">${p.genero?p.genero+' · ':''}${p.estado}${p.fecha?' · 📅 '+fmt_d(p.fecha):''}</div>
+      ${p.desc?`<div style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.5">${p.desc.slice(0,100)}${p.desc.length>100?'...':''}</div>`:''}
+      <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px">
+        <span>Avance</span><span id="av-${p.id}" style="font-weight:700;color:${col}">${p.avance}%</span>
+      </div>
+      <div class="prog"><div class="prog-fill" id="pf-${p.id}" style="width:${p.avance}%;background:${col}"></div></div>
+      <input type="range" min="0" max="100" value="${p.avance}" oninput="updateAvance(${p.id},this.value)" style="width:100%;margin-top:8px;accent-color:${col}">
+    </div>`;
+  }).join('');
+}
+ 
+/* ── IDEAS ── */
+const CAT_COLS={Portada:'#FF6D00',Videoclip:'#5E35B1',Branding:'#0288D1','Mood board':'#00897B',Vestuario:'#FF8F00'};
+function addIdea(){
+  const t=document.getElementById('id-titulo').value.trim();if(!t)return;
+  ideas.unshift({id:Date.now(),titulo:t,cat:document.getElementById('id-cat').value,proy:document.getElementById('id-proy').value,refs:document.getElementById('id-refs').value,desc:document.getElementById('id-desc').value,fecha:today()});
+  persist();['id-titulo','id-proy','id-refs','id-desc'].forEach(id=>document.getElementById(id).value='');renderIdeas();
+}
+function delIdea(id){ideas=ideas.filter(i=>i.id!==id);persist();renderIdeas();}
+function renderIdeas(){
+  if(!ideas.length){document.getElementById('ideas-list').innerHTML=`<div class="empty"><span class="empty-icon">💡</span>Sin ideas visuales guardadas.</div>`;return;}
+  document.getElementById('ideas-list').innerHTML=ideas.map(i=>{
+    const col=CAT_COLS[i.cat]||'#0288D1';
+    return`<div class="idea-card" style="--card-accent:${col}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <span style="font-size:9px;background:${col}22;color:${col};padding:2px 9px;border-radius:10px;font-weight:600">${i.cat}</span>
+          ${i.proy?`<span style="font-size:9px;background:var(--blue-bg);color:var(--blue-dk);padding:2px 9px;border-radius:10px;font-weight:600;margin-left:4px">${i.proy}</span>`:''}
+        </div>
+        <button class="xbtn" onclick="delIdea(${i.id})">✕</button>
+      </div>
+      <div class="idea-title">${i.titulo}</div>
+      ${i.refs?`<div style="font-size:10px;color:var(--blue);margin-bottom:6px">Referencias: ${i.refs}</div>`:''}
+      ${i.desc?`<div class="idea-body">${i.desc}</div>`:''}
+      <div style="font-size:9px;color:var(--text3);margin-top:8px">${i.fecha}</div>
+    </div>`;
+  }).join('');
+}
+ 
+/* ── CONTENIDO ── */
+const PLAT_ICONS={Instagram:'📸',TikTok:'🎵',YouTube:'▶️',Spotify:'🎧',SoundCloud:'🌥',Twitter:'🐦'};
+function addContenido(){
+  const t=document.getElementById('co-titulo').value.trim();if(!t)return;
+  contenido.unshift({id:Date.now(),titulo:t,plat:document.getElementById('co-plat').value,tipo:document.getElementById('co-tipo').value,fecha:document.getElementById('co-fecha').value,estado:document.getElementById('co-estado').value,desc:document.getElementById('co-desc').value});
+  persist();['co-titulo','co-desc'].forEach(id=>document.getElementById(id).value='');renderContenido();
+}
+function delContenido(id){contenido=contenido.filter(c=>c.id!==id);persist();renderContenido();}
+function markPublicado(id){const c=contenido.find(c=>c.id===id);if(c)c.estado='Publicado';persist();renderContenido();}
+const ST_CO_COL={Idea:'tag-b','En producción':'tag-o','Listo para publicar':'tag-a',Publicado:'tag-g'};
+function renderContenido(){
+  const pend=contenido.filter(c=>c.estado!=='Publicado').sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
+  const pub=contenido.filter(c=>c.estado==='Publicado');
+  const renderItem=c=>`
+    <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:20px">${PLAT_ICONS[c.plat]||'📲'}</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600">${c.titulo}</div>
+        <div style="font-size:10px;color:var(--text2)">${c.plat} · ${c.tipo}${c.fecha?' · '+fmt_d(c.fecha):''}</div>
+        <span class="tag ${(ST_CO_COL[c.estado]||'tag-b')}" style="margin-top:4px">${c.estado}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        ${c.estado!=='Publicado'?`<button class="btn-save green" style="padding:4px 8px;font-size:9px" onclick="markPublicado(${c.id})">✓ Pub</button>`:''}
+        <button class="xbtn" onclick="delContenido(${c.id})">✕</button>
+      </div>
+    </div>`;
+  document.getElementById('co-pendientes').innerHTML=pend.length?pend.map(renderItem).join(''):`<div class="empty" style="padding:20px">Sin contenido pendiente.</div>`;
+  document.getElementById('co-publicados').innerHTML=pub.length?pub.map(renderItem).join(''):`<div class="empty" style="padding:20px">Sin publicaciones.</div>`;
+}
+ 
+/* ── GEAR ── */
+function addGear(){
+  const n=document.getElementById('ge-nombre').value.trim();if(!n)return;
+  gear.push({id:Date.now(),nombre:n,cat:document.getElementById('ge-cat').value,status:document.getElementById('ge-status').value,precio:parseFloat(document.getElementById('ge-precio').value)||0,marca:document.getElementById('ge-marca').value,notas:document.getElementById('ge-notas').value});
+  persist();['ge-nombre','ge-precio','ge-marca','ge-notas'].forEach(id=>document.getElementById(id).value='');renderGear();
+}
+function delGear(id){gear=gear.filter(g=>g.id!==id);persist();renderGear();}
+function renderGear(){
+  const owned=gear.filter(g=>g.status==='owned');
+  const want=gear.filter(g=>g.status==='want');
+  const totalVal=owned.reduce((a,b)=>a+b.precio,0);
+  const wishVal=want.reduce((a,b)=>a+b.precio,0);
+  document.getElementById('gear-kpi').innerHTML=`
+    <div class="kpi" style="--kpi-c:var(--green)"><div class="kpi-label">Lo tengo</div><div class="kpi-val">${owned.length}</div><div class="kpi-sub">${fmt(totalVal)}</div></div>
+    <div class="kpi" style="--kpi-c:var(--orange)"><div class="kpi-label">Lo quiero</div><div class="kpi-val">${want.length}</div><div class="kpi-sub">${fmt(wishVal)}</div></div>
+    <div class="kpi" style="--kpi-c:var(--blue)"><div class="kpi-label">Alquilado</div><div class="kpi-val">${gear.filter(g=>g.status==='renting').length}</div></div>
+  `;
+  if(!gear.length){document.getElementById('gear-list').innerHTML=`<div class="empty"><span class="empty-icon">🎚</span>Sin equipos registrados.</div>`;return;}
+  const cats=[...new Set(gear.map(g=>g.cat))];
+  document.getElementById('gear-list').innerHTML=cats.map(cat=>{
+    const items=gear.filter(g=>g.cat===cat);
+    return`<div class="card" style="margin-bottom:12px">
+      <div class="card-title" style="font-size:14px;margin-bottom:12px">${cat}</div>
+      ${items.map(g=>`
+        <div class="gear-row">
+          <div class="gear-icon">${g.cat.slice(0,2)}</div>
+          <div style="flex:1">
+            <div class="gear-name">${g.nombre}</div>
+            <div class="gear-detail">${g.marca||''}${g.precio?' · '+fmt(g.precio):''}${g.notas?'<br>'+g.notas:''}</div>
+          </div>
+          <span class="gear-status gs-${g.status}">${g.status==='owned'?'✓ Tengo':g.status==='want'?'♥ Quiero':'⟳ Alquilado'}</span>
+          <button class="xbtn" onclick="delGear(${g.id})">✕</button>
+        </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+ 
+// Init
+renderDashboard();renderSemanas();renderProyectos();renderIdeas();renderContenido();renderGear();
+</script>
+</body>
+</html>
