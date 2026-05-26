@@ -26,12 +26,33 @@
   --sans:'Jost',-apple-system,sans-serif;
 }
 body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
-.shell{max-width:100%;margin:0 auto;padding:0 40px 60px}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 0 16px;border-bottom:1px solid var(--border2);margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.shell {
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 40px 60px;
+}
+.topbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px 0 16px;
+  border-bottom: 1px solid var(--border2);
+  margin-bottom: 20px;
+  gap: 8px;
+}
 .back-link{font-size:11px;color:var(--text2);text-decoration:none;letter-spacing:.4px}.back-link:hover{color:var(--orange)}
 .app-title{font-family:var(--serif);font-size:24px;font-weight:700}
 .app-sub{font-size:11px;color:var(--text2);letter-spacing:.3px;margin-top:2px}
-.nav{display:flex;border-bottom:1px solid var(--border2);margin-bottom:24px;overflow-x:auto;scrollbar-width:none}
+.nav {
+  display: flex;
+  justify-content: center;
+  border-bottom: 1px solid var(--border2);
+  margin-bottom: 24px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
 .nav::-webkit-scrollbar{display:none}
 .nav-btn{padding:9px 16px;border:none;background:none;font-size:12px;font-family:var(--sans);color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;letter-spacing:.3px}
 .nav-btn.active{color:var(--orange);border-bottom-color:var(--orange);font-weight:500}
@@ -97,7 +118,6 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}
   <button class="nav-btn" onclick="goPage('calorias',this)">Calorías</button>
 </div>
  
-<!-- INVENTARIO -->
 <div id="page-inventario" class="page on">
   <div class="kpi-row" id="inv-kpi"></div>
   <div class="card">
@@ -123,7 +143,6 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}
   </div>
 </div>
  
-<!-- PLAN SEMANAL -->
 <div id="page-plan" class="page">
   <div class="week-nav">
     <button class="week-nav-btn" onclick="changeWeek(-1)">‹ Semana anterior</button>
@@ -138,7 +157,6 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}
   </div>
 </div>
  
-<!-- PRESUPUESTO -->
 <div id="page-presupuesto" class="page">
   <div class="kpi-row" id="pres-kpi"></div>
   <div class="grid2">
@@ -172,7 +190,6 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}
   </div>
 </div>
  
-<!-- CALORÍAS -->
 <div id="page-calorias" class="page">
   <div class="kpi-row" id="cal-kpi"></div>
   <div class="grid2">
@@ -209,6 +226,22 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}
     <div id="cals-semana"></div>
   </div>
 </div>
+
+<div class="card" style="margin-top: 30px; border-style: dashed; background: var(--bg2);">
+  <div class="card-title" style="font-size: 14px; color: var(--text2); margin-bottom: 8px;">💾 Copia de Seguridad Permanente</div>
+  <p style="font-size: 11px; color: var(--text2); margin-bottom: 12px; line-height: 1.4;">
+    Descarga una copia de tus alimentos, gastos e inventario para evitar pérdidas si Notion limpia la memoria del navegador.
+  </p>
+  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <button class="btn-add" onclick="exportarDatosAlimentacion()" style="background: var(--blue-bg); color: var(--blue-dk);">
+      📥 Descargar Respaldo (.json)
+    </button>
+    <button class="btn-add gold" onclick="document.getElementById('import-file-al').click()">
+      📤 Subir Respaldo
+    </button>
+    <input type="file" id="import-file-al" accept=".json" onchange="importarDatosAlimentacion(event)" style="display: none;">
+  </div>
+</div>
  
 </div>
 <script>
@@ -217,12 +250,16 @@ const today=()=>new Date().toISOString().slice(0,10);
 document.getElementById('cur-date').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
  
 let productos=[],gastos=[],comidas=[],meals={},presupuesto=80000,metaCals=2000;
-try{productos=JSON.parse(localStorage.getItem('al_pr')||'[]')}catch(e){}
-try{gastos=JSON.parse(localStorage.getItem('al_gas')||'[]')}catch(e){}
-try{comidas=JSON.parse(localStorage.getItem('al_com')||'[]')}catch(e){}
-try{meals=JSON.parse(localStorage.getItem('al_meals')||'{}')}catch(e){}
-try{presupuesto=parseFloat(localStorage.getItem('al_pres'))||80000}catch(e){}
-try{metaCals=parseFloat(localStorage.getItem('al_metacals'))||2000}catch(e){}
+
+function cargarTodoDesdeStorage() {
+  try{productos=JSON.parse(localStorage.getItem('al_pr')||'[]')}catch(e){}
+  try{gastos=JSON.parse(localStorage.getItem('al_gas')||'[]')}catch(e){}
+  try{comidas=JSON.parse(localStorage.getItem('al_com')||'[]')}catch(e){}
+  try{meals=JSON.parse(localStorage.getItem('al_meals')||'{}')}catch(e){}
+  try{presupuesto=parseFloat(localStorage.getItem('al_pres'))||80000}catch(e){}
+  try{metaCals=parseFloat(localStorage.getItem('al_metacals'))||2000}catch(e){}
+}
+cargarTodoDesdeStorage();
  
 function persist(){
   localStorage.setItem('al_pr',JSON.stringify(productos));
@@ -231,6 +268,70 @@ function persist(){
   localStorage.setItem('al_meals',JSON.stringify(meals));
   localStorage.setItem('al_pres',presupuesto);
   localStorage.setItem('al_metacals',metaCals);
+}
+
+// ==========================================
+// FUNCIONES NATIVAS DE COPIAS DE SEGURIDAD
+// ==========================================
+window.exportarDatosAlimentacion = function() {
+  const dataExport = {
+    productos: productos,
+    gastos: gastos,
+    comidas: comidas,
+    meals: meals,
+    presupuesto: presupuesto,
+    metaCals: metaCals,
+    modulo: "alimentacion",
+    exportadoEn: new Date().toISOString()
+  };
+  
+  const jsonString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataExport, null, 2));
+  const dlAnchor = document.createElement('a');
+  dlAnchor.setAttribute("href", jsonString);
+  dlAnchor.setAttribute("download", `respaldo_alimentacion_${today()}.json`);
+  document.body.appendChild(dlAnchor);
+  dlAnchor.click();
+  dlAnchor.remove();
+}
+
+window.importarDatosAlimentacion = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const parsedData = JSON.parse(e.target.result);
+      
+      // Validar que corresponda al formato o contenga estructuras esperadas
+      if (parsedData.productos || parsedData.gastos || parsedData.meals || parsedData.comidas) {
+        productos = parsedData.productos || [];
+        gastos = parsedData.gastos || [];
+        comidas = parsedData.comidas || [];
+        meals = parsedData.meals || {};
+        presupuesto = parsedData.presupuesto || 80000;
+        metaCals = parsedData.metaCals || 2000;
+        
+        persist();
+        
+        // Ajustar inputs del formulario con los nuevos valores restaurados
+        if(document.getElementById('presup-semanal')) document.getElementById('presup-semanal').value = presupuesto;
+        if(document.getElementById('meta-cals')) document.getElementById('meta-cals').value = metaCals;
+        
+        refrescarTodaLaPantalla();
+        alert("¡Registro de Alimentación restaurado correctamente! 🍏");
+      } else {
+        alert("El archivo no contiene un formato de respaldo válido.");
+      }
+    } catch (err) {
+      alert("Error al procesar el archivo. Asegúrate de subir el archivo .json correcto.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+function refrescarTodaLaPantalla() {
+  renderInventario(); renderPlan(); renderPresupuesto(); renderCalorias();
 }
  
 let weekOffset=0;
@@ -439,7 +540,7 @@ function renderCalorias(){
   document.getElementById('cals-semana').innerHTML=html;
 }
  
-renderInventario();renderPresupuesto();renderCalorias();renderPlan();
+refrescarTodaLaPantalla();
 </script>
 </body>
 </html>
