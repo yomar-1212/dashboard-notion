@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trabajo — Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -50,7 +50,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .btn-add:hover{opacity:.85}
 .btn-add.green{background:var(--green-bg);color:var(--green-dk)}
 .btn-add.gold{background:var(--gold-bg);color:var(--gold-dk)}
-.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:500}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:500;text-transform:capitalize}
 .tag.alta{background:var(--red-bg);color:var(--red-dk)}.tag.media{background:var(--gold-bg);color:var(--gold-dk)}.tag.baja{background:var(--green-bg);color:var(--green-dk)}
 .empty{text-align:center;padding:32px;color:var(--text3);font-size:12px}
 .xbtn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:2px 6px;border-radius:4px}
@@ -80,7 +80,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .cal-month-title{font-family:var(--serif);font-size:15px;font-weight:600}
  
 /* EVENT FORM */
-.ev-badge{display:inline-flex;align-items:center;gap:4px;background:var(--blue-bg);color:var(--blue-dk);padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;margin:3px 2px}
+.ev-badge{display:inline-flex;align-items:center;gap:4px;background:var(--blue-bg);color:var(--blue-dk);padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;margin:3px 2px;text-transform:capitalize}
 .ev-badge.importante{background:var(--red-bg);color:var(--red-dk)}
 .ev-badge.recordatorio{background:var(--gold-bg);color:var(--gold-dk)}
 .ev-badge.entrega{background:var(--green-bg);color:var(--green-dk)}
@@ -121,7 +121,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   <button class="nav-btn" onclick="goPage('apuntes',this)">Apuntes</button>
 </div>
  
-<!-- DASHBOARD -->
 <div id="page-dashboard" class="page on">
   <div class="kpi-row" id="dash-kpi"></div>
   <div class="grid2">
@@ -140,7 +139,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
  
-<!-- TODO HOY -->
 <div id="page-todohoy" class="page">
   <div class="card">
     <div class="card-title">
@@ -167,7 +165,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
  
-<!-- TAREAS -->
 <div id="page-tareas" class="page">
   <div class="card">
     <div class="card-title">Tareas Pendientes</div>
@@ -193,7 +190,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
  
-<!-- CALENDARIO -->
 <div id="page-calendario" class="page">
   <div class="grid2">
     <div class="card">
@@ -231,7 +227,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
  
-<!-- APUNTES -->
 <div id="page-apuntes" class="page">
   <div class="card">
     <div class="card-title">Nuevo Apunte o Avance</div>
@@ -252,6 +247,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 </div>
 <script>
 let todosHoy=[],tareas=[],eventos=[],notas=[];
+let currentSelectedDate = '';
+
 try{todosHoy=JSON.parse(localStorage.getItem('tr_th')||'[]')}catch(e){}
 try{tareas=JSON.parse(localStorage.getItem('tr_ta')||'[]')}catch(e){}
 try{eventos=JSON.parse(localStorage.getItem('tr_ev')||'[]')}catch(e){}
@@ -269,6 +266,8 @@ const fmt_date=d=>new Date(d+'T12:00:00').toLocaleDateString('es-CO',{day:'numer
  
 document.getElementById('cur-date').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 document.getElementById('today-date-label').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
+
+currentSelectedDate = today();
 if(document.getElementById('ev-fecha'))document.getElementById('ev-fecha').value=today();
  
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
@@ -280,7 +279,7 @@ function goPage(id,btn){
   btn.classList.add('active');
   if(id==='todohoy')renderTodoHoy();
   if(id==='tareas')renderTareas();
-  if(id==='calendario')renderCal();
+  if(id==='calendario') { renderCal(); renderEvList(currentSelectedDate); }
   if(id==='apuntes')renderNotas();
   if(id==='dashboard')renderDashboard();
 }
@@ -374,7 +373,12 @@ function addEvento(){
   eventos.push({id:Date.now(),titulo,fecha,tipo:document.getElementById('ev-tipo').value});
   persist();document.getElementById('ev-titulo').value='';renderCal();renderEvList(fecha);
 }
-function delEvento(id){eventos=eventos.filter(e=>e.id!==id);persist();renderCal();}
+function delEvento(id){
+  eventos=eventos.filter(e=>e.id!==id);
+  persist();
+  renderCal();
+  renderEvList(currentSelectedDate);
+}
  
 function renderCal(){
   const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -396,6 +400,7 @@ function renderCal(){
   document.getElementById('cal-days').innerHTML=html;
 }
 function renderEvList(fecha){
+  currentSelectedDate = fecha;
   const dayEvs=eventos.filter(e=>e.fecha===fecha);
   document.getElementById('ev-selected-day').textContent=fmt_date(fecha);
   document.getElementById('ev-list').innerHTML=dayEvs.length?dayEvs.map(e=>`
