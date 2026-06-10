@@ -100,6 +100,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .log-item:last-child{border-bottom:none}
  
 @media(max-width:640px){.shell{padding:0 14px 60px}.grid2{grid-template-columns:1fr}.hobby-main-grid{grid-template-columns:1fr}}
+/* Cloud Sync Status Indicator */
+.sync-status { font-size: 11px; color: var(--text3); display: inline-flex; align-items: center; gap: 5px; font-weight: 500;}
+.sync-status.saving { color: var(--amber-dk); }
+.sync-status.success { color: var(--green); }
+.sync-status.error { color: var(--red); }
 </style>
 </head>
 <body>
@@ -111,7 +116,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     <div class="app-title">🌿 Hobbies</div>
     <div class="app-sub" id="cur-date"></div>
   </div>
-  <div style="width:60px"></div>
+  <div id="sync-indicator" class="sync-status">☁️ Conectado local</div>
 </div>
  
 <div class="nav">
@@ -121,7 +126,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   <button class="nav-btn" onclick="goPage('stats',this)">Estadísticas</button>
 </div>
  
-<!-- DASHBOARD -->
 <div id="page-dashboard" class="page on">
   <div class="kpi-row" id="dash-kpi"></div>
   <div class="grid2">
@@ -140,7 +144,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
  
-<!-- HOBBIES -->
 <div id="page-hobbies" class="page">
   <div class="card">
     <div class="card-title">Agregar Hobby</div>
@@ -167,13 +170,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   <div class="hobby-main-grid" id="hobbies-grid"></div>
 </div>
  
-<!-- REGISTRAR SESIÓN -->
 <div id="page-registro" class="page">
   <div class="card">
     <div class="card-title">Registrar Sesión</div>
     <div class="fg">
       <div class="f"><div class="fl">Hobby</div>
-        <select id="reg-hobby" id="reg-hobby"><option value="">-- Seleccionar --</option></select>
+        <select id="reg-hobby"><option value="">-- Seleccionar --</option></select>
       </div>
       <div class="f"><div class="fl">Fecha</div><input type="date" id="reg-fecha"></div>
       <div class="f"><div class="fl">Duración (min)</div><input type="number" id="reg-dur" placeholder="60" min="1"></div>
@@ -193,7 +195,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
  
-<!-- ESTADÍSTICAS -->
 <div id="page-stats" class="page">
   <div class="kpi-row" id="stats-kpi"></div>
   <div class="card">
@@ -224,6 +225,21 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
  
 </div>
 <script>
+// ==========================================
+// ☁️ CONFIGURACIÓN DE NUBES (Rellena aquí)
+// ==========================================
+const GH_TOKEN = "TU_GITHUB_PERSONAL_ACCESS_TOKEN";
+const GH_OWNER = "TU_USUARIO_GITHUB";
+const GH_REPO = "NOMBRE_DE_TU_REPOSITORIO";
+const GH_PATH = "data/hobbies.json"; // Archivo donde se guardará todo el JSON
+
+const NOTION_TOKEN = "TU_NOTION_INTEGRATION_TOKEN";
+const NOTION_DB_ID = "ID_DE_TU_DATABASE_EN_NOTION";
+// Proxy público para evadir la restricción CORS de Notion en navegadores:
+const CORS_PROXY = "https://cors-anywhere.herokuapp.com/"; 
+
+// ==========================================
+
 const today=()=>new Date().toISOString().slice(0,10);
 const fmt_d=d=>d?new Date(d+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'}):'';
 document.getElementById('cur-date').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
@@ -235,8 +251,93 @@ let hobbies=[],sesiones=[];
 try{hobbies=JSON.parse(localStorage.getItem('ho_hb')||'[]')}catch(e){}
 try{sesiones=JSON.parse(localStorage.getItem('ho_se')||'[]')}catch(e){}
  
-function persist(){localStorage.setItem('ho_hb',JSON.stringify(hobbies));localStorage.setItem('ho_se',JSON.stringify(sesiones));}
+function persist(){
+  localStorage.setItem('ho_hb',JSON.stringify(hobbies));
+  localStorage.setItem('ho_se',JSON.stringify(sesiones));
+  // Cada cambio guarda el estado completo en GitHub
+  saveToGitHub();
+}
  
+// 🔥 AUTO-GUARDADO EN GITHUB (Base de datos JSON completa)
+async function saveToGitHub() {
+  if (!GH_TOKEN || GH_TOKEN.startsWith("TU_")) return;
+  const indicator = document.getElementById('sync-indicator');
+  indicator.textContent = "⏳ Sincronizando GitHub...";
+  indicator.className = "sync-status saving";
+
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`;
+  let sha = null;
+
+  try {
+    // 1. Conseguir el SHA del archivo si ya existe para poder reemplazarlo
+    const resExist = await fetch(url, { headers: { 'Authorization': `token ${GH_TOKEN}` } });
+    if (resExist.ok) {
+      const fileData = await resExist.json();
+      sha = fileData.sha;
+    }
+
+    // 2. Codificar contenido de forma segura para emojis y caracteres especiales UTF-8
+    const dataToSave = JSON.stringify({ hobbies, sesiones }, null, 2);
+    const contentBase64 = btoa(unescape(encodeURIComponent(dataToSave)));
+
+    // 3. Subir/Actualizar a GitHub
+    const resPut = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${GH_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: "🌿 Auto-save: Actualización de panel de Hobbies",
+        content: contentBase64,
+        sha: sha
+      })
+    });
+
+    if(resPut.ok) {
+      indicator.textContent = "☁️ Sincronizado";
+      indicator.className = "sync-status success";
+    } else { throw new Error(); }
+  } catch(e) {
+    indicator.textContent = "❌ Error GitHub";
+    indicator.className = "sync-status error";
+  }
+}
+
+// 🪵 ENVIAR NUEVA FILA A LA BASE DE DATOS DE NOTION
+async function saveToNotion(hobbyName, emoji, sesion) {
+  if (!NOTION_TOKEN || NOTION_TOKEN.startsWith("TU_")) return;
+  const indicator = document.getElementById('sync-indicator');
+  
+  // Construir payload con propiedades estándar de Notion
+  const payload = {
+    parent: { database_id: NOTION_DB_ID },
+    icon: { type: "emoji", emoji: emoji || "🎯" },
+    properties: {
+      "Hobby": { title: [{ text: { content: hobbyName } }] },
+      "Fecha": { date: { start: sesion.fecha } },
+      "Duración (min)": { number: sesion.dur },
+      "Mood": { number: parseInt(sesion.mood) },
+      "Notas": { rich_text: [{ text: { content: sesion.notas || "" } }] }
+    }
+  };
+
+  try {
+    await fetch(`${CORS_PROXY}https://api.notion.com/v1/pages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${NOTION_TOKEN}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {
+    console.error("Error al enviar fila a Notion: ", e);
+  }
+}
+
 function goPage(id,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
@@ -255,7 +356,7 @@ function renderDashboard(){
     const w=new Date(n);w.setDate(n.getDate()-n.getDay());
     return d>=w;
   }).length;
-  
+   
   document.getElementById('dash-kpi').innerHTML=`
     <div class="kpi" style="--kpi-c:var(--orange)"><div class="kpi-label">Hobbies</div><div class="kpi-val">${hobbies.length}</div></div>
     <div class="kpi" style="--kpi-c:var(--blue)"><div class="kpi-label">Sesiones totales</div><div class="kpi-val">${totalSes}</div></div>
@@ -263,7 +364,7 @@ function renderDashboard(){
     <div class="kpi" style="--kpi-c:var(--amber)"><div class="kpi-label">Este mes</div><div class="kpi-val">${thisMo}</div></div>
     <div class="kpi" style="--kpi-c:var(--purple)"><div class="kpi-label">Esta semana</div><div class="kpi-val">${thisWeek}</div></div>
   `;
-  
+   
   // Rachas
   const rachas=hobbies.map(h=>{
     const ses=sesiones.filter(s=>s.hobbyId===h.id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
@@ -272,7 +373,7 @@ function renderDashboard(){
     while(fechas.has(cur.toISOString().slice(0,10))){racha++;cur.setDate(cur.getDate()-1);}
     return{...h,racha};
   }).filter(h=>h.racha>0).sort((a,b)=>b.racha-a.racha);
-  
+   
   document.getElementById('dash-rachas').innerHTML=rachas.length?rachas.slice(0,5).map(h=>`
     <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
       <span style="font-size:22px">${h.emoji||'●'}</span>
@@ -280,7 +381,7 @@ function renderDashboard(){
       <div class="racha-badge">🔥 ${h.racha} día${h.racha!==1?'s':''}</div>
     </div>`).join(''):
     `<div class="empty"><span class="empty-icon">🔥</span>Comienza a registrar sesiones para ver tus rachas.</div>`;
-  
+   
   // Esta semana
   const weekStart=new Date();weekStart.setDate(weekStart.getDate()-weekStart.getDay());
   const weekDays=Array.from({length:7},(_,i)=>{const d=new Date(weekStart);d.setDate(weekStart.getDate()+i);return d.toISOString().slice(0,10);});
@@ -297,7 +398,7 @@ function renderDashboard(){
         </div>`;
       }).join('')}
     </div>`;
-  
+   
   const recent=sesiones.sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,5);
   const MOOD_EMOJI={5:'😄',4:'😊',3:'😐',2:'😕',1:'😔'};
   document.getElementById('dash-recent').innerHTML=recent.length?recent.map(s=>{
@@ -327,8 +428,10 @@ function checkIn(id){
   const h=hobbies.find(h=>h.id===id);if(!h)return;
   const ya=sesiones.find(s=>s.hobbyId===id&&s.fecha===today());
   if(ya){alert('Ya registraste una sesión de '+h.nombre+' hoy.');return;}
-  sesiones.push({id:Date.now(),hobbyId:id,fecha:today(),dur:h.duracion,mood:4,notas:''});
+  const nuevaSesion = {id:Date.now(),hobbyId:id,fecha:today(),dur:h.duracion,mood:4,notas:''};
+  sesiones.push(nuevaSesion);
   persist();renderHobbies();
+  saveToNotion(h.nombre, h.emoji, nuevaSesion); // Sincroniza racha instantánea a Notion
 }
  
 function getRacha(id){
@@ -389,8 +492,16 @@ function addSesion(){
   if(!hobbyId){alert('Selecciona un hobby.');return;}
   const dur=parseInt(document.getElementById('reg-dur').value)||60;
   const fecha=document.getElementById('reg-fecha').value;
-  sesiones.push({id:Date.now(),hobbyId,fecha,dur,mood:parseInt(document.getElementById('reg-mood').value),notas:document.getElementById('reg-notas').value});
-  persist();document.getElementById('reg-notas').value='';renderRegistro();renderHobbies();
+  const h=hobbies.find(x=>x.id===hobbyId);
+
+  const nuevaSesion = {id:Date.now(),hobbyId,fecha,dur,mood:parseInt(document.getElementById('reg-mood').value),notas:document.getElementById('reg-notas').value};
+  sesiones.push(nuevaSesion);
+  
+  persist();
+  document.getElementById('reg-notas').value='';
+  renderRegistro();renderHobbies();
+  
+  saveToNotion(h.nombre, h.emoji, nuevaSesion); // Sincroniza log manual a Notion
 }
 function delSesion(id){sesiones=sesiones.filter(s=>s.id!==id);persist();renderRegistro();}
 const MOOD_EMOJI={5:'😄',4:'😊',3:'😐',2:'😕',1:'😔'};
@@ -404,7 +515,7 @@ function renderRegistro(){
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600">${h?.nombre||'?'}</div>
         <div style="font-size:10px;color:var(--text2)">${fmt_d(s.fecha)} · ${s.dur} min</div>
-        ${s.notas?`<div style="font-size:11px;color:var(--text2);margin-top:3px;font-style:italic">"${s.notas.slice(0,80)}"</div>`:''}
+        ${s.notes||s.notas?`<div style="font-size:11px;color:var(--text2);margin-top:3px;font-style:italic">"${(s.notes||s.notas).slice(0,80)}"</div>`:''}
       </div>
       <span style="font-size:20px">${MOOD_EMOJI[s.mood]||''}</span>
       <button class="xbtn" onclick="delSesion(${s.id})">✕</button>
@@ -425,7 +536,7 @@ function renderStats(){
     <div class="kpi" style="--kpi-c:var(--green)"><div class="kpi-label">Duración media</div><div class="kpi-val">${avgDur}<span style="font-size:12px;font-weight:400"> min</span></div></div>
     <div class="kpi" style="--kpi-c:var(--purple)"><div class="kpi-label">Hobby top</div><div class="kpi-val" style="font-size:16px">${topH?topH.emoji+' '+topH.nombre.slice(0,8):'—'}</div></div>
   `;
-  
+   
   // By hobby bars
   const byHobby=hobbies.map((h,i)=>({...h,mins:sesiones.filter(s=>s.hobbyId===h.id).reduce((a,b)=>a+(b.dur||0),0),col:COLORS[i%COLORS.length]})).sort((a,b)=>b.mins-a.mins);
   const maxMins=byHobby[0]?.mins||1;
@@ -436,7 +547,7 @@ function renderStats(){
       <div style="font-size:12px;font-weight:600;text-align:right;color:${h.col}">${Math.round(h.mins/60)}h ${h.mins%60}m</div>
     </div>`).join(''):
   '<div class="empty" style="padding:20px">Sin datos.</div>';
-  
+   
   // Heatmap (last 52 weeks)
   const heatData={};sesiones.forEach(s=>{heatData[s.fecha]=(heatData[s.fecha]||0)+1;});
   const heatCells=[];
@@ -450,7 +561,7 @@ function renderStats(){
     cur.setDate(cur.getDate()+1);
   }
   document.getElementById('heatmap').innerHTML=heatCells.join('');
-  
+   
   // Mood by hobby
   document.getElementById('stats-mood').innerHTML=byHobby.map(h=>{
     const ses=sesiones.filter(s=>s.hobbyId===h.id&&s.mood);
