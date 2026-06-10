@@ -228,13 +228,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 // ==========================================
 // ☁️ CONFIGURACIÓN DE NUBES (Rellena aquí)
 // ==========================================
-const GH_TOKEN = "TU_GITHUB_PERSONAL_ACCESS_TOKEN";
-const GH_OWNER = "TU_USUARIO_GITHUB";
-const GH_REPO = "NOMBRE_DE_TU_REPOSITORIO";
+const GH_TOKEN = "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";
+const GH_OWNER = "yomar-1212";
+const GH_REPO = "dashboard-notion";
 const GH_PATH = "data/hobbies.json"; // Archivo donde se guardará todo el JSON
 
-const NOTION_TOKEN = "TU_NOTION_INTEGRATION_TOKEN";
-const NOTION_DB_ID = "ID_DE_TU_DATABASE_EN_NOTION";
+const NOTION_TOKEN = "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";
+const NOTION_DB_ID = "37b51ab88da68055bc37e683168c1933";
 // Proxy público para evadir la restricción CORS de Notion en navegadores:
 const CORS_PROXY = "https://cors-anywhere.herokuapp.com/"; 
 
@@ -413,7 +413,10 @@ function renderDashboard(){
   }).join(''):
   `<div class="empty"><span class="empty-icon">📋</span>Sin sesiones registradas.</div>`;
 }
- 
+  function enviarDatos() {
+    console.log("¡El botón fue presionado! Iniciando proceso...");
+    // ... aquí va todo tu código de Notion/GitHub ...
+}
 /* ── HOBBIES ── */
 function addHobby(){
   const n=document.getElementById('hb-nombre').value.trim();if(!n)return;
