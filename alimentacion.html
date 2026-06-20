@@ -26,33 +26,12 @@
   --sans:'Jost',-apple-system,sans-serif;
 }
 body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
-.shell {
-  max-width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 0 40px 60px;
-}
-.topbar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 20px 0 16px;
-  border-bottom: 1px solid var(--border2);
-  margin-bottom: 20px;
-  gap: 8px;
-}
+.shell{max-width:1060px;margin:0 auto;padding:0 24px 60px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 0 16px;border-bottom:1px solid var(--border2);margin-bottom:20px;flex-wrap:wrap;gap:12px}
 .back-link{font-size:11px;color:var(--text2);text-decoration:none;letter-spacing:.4px}.back-link:hover{color:var(--orange)}
 .app-title{font-family:var(--serif);font-size:24px;font-weight:700}
 .app-sub{font-size:11px;color:var(--text2);letter-spacing:.3px;margin-top:2px}
-.nav {
-  display: flex;
-  justify-content: center;
-  border-bottom: 1px solid var(--border2);
-  margin-bottom: 24px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
+.nav{display:flex;border-bottom:1px solid var(--border2);margin-bottom:24px;overflow-x:auto;scrollbar-width:none}
 .nav::-webkit-scrollbar{display:none}
 .nav-btn{padding:9px 16px;border:none;background:none;font-size:12px;font-family:var(--sans);color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;letter-spacing:.3px}
 .nav-btn.active{color:var(--orange);border-bottom-color:var(--orange);font-weight:500}
@@ -102,6 +81,21 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}
 /* CAL BADGE */
 .cal-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500}
 @media(max-width:700px){.week-grid{grid-template-columns:repeat(4,1fr)}.shell{padding:0 14px 40px}.grid2{grid-template-columns:1fr}}
+ 
+/* DATA PERSISTENCE BAR */
+.databar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:9px 16px;margin-bottom:18px;font-size:11px;color:var(--text2)}
+.databar-status{display:flex;align-items:center;gap:6px}
+.databar-dot{width:7px;height:7px;border-radius:50%;background:#2a8a4a;flex-shrink:0;box-shadow:0 0 0 3px rgba(42,138,74,.15)}
+.databar-actions{display:flex;gap:8px;flex-wrap:wrap}
+.databar-btn{height:28px;display:inline-flex;align-items:center;padding:0 13px;border:1px solid var(--border2);border-radius:20px;background:var(--bg);color:var(--text2);font-size:11px;font-family:var(--sans);cursor:pointer;transition:all .15s;white-space:nowrap}
+.databar-btn:hover{background:var(--orange-bg);color:var(--orange-dk);border-color:var(--orange)}
+ 
+/* SAVE TOAST */
+.save-toast{position:fixed;bottom:22px;right:22px;background:#1b1f2e;color:#fff;padding:10px 18px;border-radius:30px;font-size:12px;font-weight:600;box-shadow:0 8px 26px rgba(0,0,0,.25);opacity:0;transform:translateY(12px);transition:opacity .25s,transform .25s;pointer-events:none;z-index:99999;display:flex;align-items:center;gap:7px;letter-spacing:.2px}
+.save-toast.show{opacity:1;transform:translateY(0)}
+.save-toast .dot{width:7px;height:7px;border-radius:50%;background:#4ade80}
+@media(max-width:600px){.save-toast{right:14px;bottom:14px;font-size:11px}}
+ 
 </style>
 </head>
 <body>
@@ -111,6 +105,16 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}
   <div><div class="app-title">Alimentación</div><div class="app-sub" id="cur-date"></div></div>
   <div></div>
 </div>
+ 
+<div class="databar">
+  <span class="databar-status"><span class="databar-dot"></span>Tus datos se guardan automáticamente en este navegador</span>
+  <div class="databar-actions">
+    <button class="databar-btn" onclick="exportBackup()">💾 Exportar respaldo</button>
+    <label class="databar-btn" for="import-file" style="margin:0">📤 Importar respaldo</label>
+    <input type="file" id="import-file" accept="application/json" onchange="importBackup(event)" style="display:none">
+  </div>
+</div>
+ 
 <div class="nav">
   <button class="nav-btn active" onclick="goPage('inventario',this)">Inventario</button>
   <button class="nav-btn" onclick="goPage('plan',this)">Plan Semanal</button>
@@ -118,6 +122,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}
   <button class="nav-btn" onclick="goPage('calorias',this)">Calorías</button>
 </div>
  
+<!-- INVENTARIO -->
 <div id="page-inventario" class="page on">
   <div class="kpi-row" id="inv-kpi"></div>
   <div class="card">
@@ -143,6 +148,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}
   </div>
 </div>
  
+<!-- PLAN SEMANAL -->
 <div id="page-plan" class="page">
   <div class="week-nav">
     <button class="week-nav-btn" onclick="changeWeek(-1)">‹ Semana anterior</button>
@@ -157,6 +163,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}
   </div>
 </div>
  
+<!-- PRESUPUESTO -->
 <div id="page-presupuesto" class="page">
   <div class="kpi-row" id="pres-kpi"></div>
   <div class="grid2">
@@ -190,6 +197,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}
   </div>
 </div>
  
+<!-- CALORÍAS -->
 <div id="page-calorias" class="page">
   <div class="kpi-row" id="cal-kpi"></div>
   <div class="grid2">
@@ -226,22 +234,6 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}
     <div id="cals-semana"></div>
   </div>
 </div>
-
-<div class="card" style="margin-top: 30px; border-style: dashed; background: var(--bg2);">
-  <div class="card-title" style="font-size: 14px; color: var(--text2); margin-bottom: 8px;">💾 Copia de Seguridad Permanente</div>
-  <p style="font-size: 11px; color: var(--text2); margin-bottom: 12px; line-height: 1.4;">
-    Descarga una copia de tus alimentos, gastos e inventario para evitar pérdidas si Notion limpia la memoria del navegador.
-  </p>
-  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-    <button class="btn-add" onclick="exportarDatosAlimentacion()" style="background: var(--blue-bg); color: var(--blue-dk);">
-      📥 Descargar Respaldo (.json)
-    </button>
-    <button class="btn-add gold" onclick="document.getElementById('import-file-al').click()">
-      📤 Subir Respaldo
-    </button>
-    <input type="file" id="import-file-al" accept=".json" onchange="importarDatosAlimentacion(event)" style="display: none;">
-  </div>
-</div>
  
 </div>
 <script>
@@ -250,89 +242,68 @@ const today=()=>new Date().toISOString().slice(0,10);
 document.getElementById('cur-date').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
  
 let productos=[],gastos=[],comidas=[],meals={},presupuesto=80000,metaCals=2000;
-
-function cargarTodoDesdeStorage() {
-  try{productos=JSON.parse(localStorage.getItem('al_pr')||'[]')}catch(e){}
-  try{gastos=JSON.parse(localStorage.getItem('al_gas')||'[]')}catch(e){}
-  try{comidas=JSON.parse(localStorage.getItem('al_com')||'[]')}catch(e){}
-  try{meals=JSON.parse(localStorage.getItem('al_meals')||'{}')}catch(e){}
-  try{presupuesto=parseFloat(localStorage.getItem('al_pres'))||80000}catch(e){}
-  try{metaCals=parseFloat(localStorage.getItem('al_metacals'))||2000}catch(e){}
-}
-cargarTodoDesdeStorage();
+try{productos=JSON.parse(localStorage.getItem('al_pr')||'[]')}catch(e){}
+try{gastos=JSON.parse(localStorage.getItem('al_gas')||'[]')}catch(e){}
+try{comidas=JSON.parse(localStorage.getItem('al_com')||'[]')}catch(e){}
+try{meals=JSON.parse(localStorage.getItem('al_meals')||'{}')}catch(e){}
+try{presupuesto=parseFloat(localStorage.getItem('al_pres'))||80000}catch(e){}
+try{metaCals=parseFloat(localStorage.getItem('al_metacals'))||2000}catch(e){}
  
 function persist(){
-  localStorage.setItem('al_pr',JSON.stringify(productos));
-  localStorage.setItem('al_gas',JSON.stringify(gastos));
-  localStorage.setItem('al_com',JSON.stringify(comidas));
-  localStorage.setItem('al_meals',JSON.stringify(meals));
-  localStorage.setItem('al_pres',presupuesto);
-  localStorage.setItem('al_metacals',metaCals);
+  try{
+    localStorage.setItem('al_pr',JSON.stringify(productos));
+    localStorage.setItem('al_gas',JSON.stringify(gastos));
+    localStorage.setItem('al_com',JSON.stringify(comidas));
+    localStorage.setItem('al_meals',JSON.stringify(meals));
+    localStorage.setItem('al_pres',presupuesto);
+    localStorage.setItem('al_metacals',metaCals);
+    showSaveToast();
+  }catch(e){
+    alert('⚠ No se pudo guardar. El almacenamiento del navegador podría estar lleno. Exporta un respaldo y libera espacio.');
+  }
 }
-
-// ==========================================
-// FUNCIONES NATIVAS DE COPIAS DE SEGURIDAD
-// ==========================================
-window.exportarDatosAlimentacion = function() {
-  const dataExport = {
-    productos: productos,
-    gastos: gastos,
-    comidas: comidas,
-    meals: meals,
-    presupuesto: presupuesto,
-    metaCals: metaCals,
-    modulo: "alimentacion",
-    exportadoEn: new Date().toISOString()
-  };
-  
-  const jsonString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataExport, null, 2));
-  const dlAnchor = document.createElement('a');
-  dlAnchor.setAttribute("href", jsonString);
-  dlAnchor.setAttribute("download", `respaldo_alimentacion_${today()}.json`);
-  document.body.appendChild(dlAnchor);
-  dlAnchor.click();
-  dlAnchor.remove();
+ 
+/* ── PERSISTENCIA Y RESPALDO ── */
+const BACKUP_KEYS = ['al_pr', 'al_gas', 'al_com', 'al_meals', 'al_pres', 'al_metacals'];
+let toastTimeout;
+function showSaveToast(){
+  const t=document.getElementById('save-toast');if(!t)return;
+  t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout=setTimeout(()=>t.classList.remove('show'),1300);
 }
-
-window.importarDatosAlimentacion = function(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const parsedData = JSON.parse(e.target.result);
-      
-      // Validar que corresponda al formato o contenga estructuras esperadas
-      if (parsedData.productos || parsedData.gastos || parsedData.meals || parsedData.comidas) {
-        productos = parsedData.productos || [];
-        gastos = parsedData.gastos || [];
-        comidas = parsedData.comidas || [];
-        meals = parsedData.meals || {};
-        presupuesto = parsedData.presupuesto || 80000;
-        metaCals = parsedData.metaCals || 2000;
-        
-        persist();
-        
-        // Ajustar inputs del formulario con los nuevos valores restaurados
-        if(document.getElementById('presup-semanal')) document.getElementById('presup-semanal').value = presupuesto;
-        if(document.getElementById('meta-cals')) document.getElementById('meta-cals').value = metaCals;
-        
-        refrescarTodaLaPantalla();
-        alert("¡Registro de Alimentación restaurado correctamente! 🍏");
-      } else {
-        alert("El archivo no contiene un formato de respaldo válido.");
-      }
-    } catch (err) {
-      alert("Error al procesar el archivo. Asegúrate de subir el archivo .json correcto.");
+function exportBackup(){
+  const data={};
+  BACKUP_KEYS.forEach(k=>{ try{const v=localStorage.getItem(k);if(v!=null)data[k]=v;}catch(e){} });
+  const payload={app:'alimentacion',label:'Alimentación',exported:new Date().toISOString(),data};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`alimentacion-respaldo-${today()}.json`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showSaveToast();
+}
+function importBackup(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const parsed=JSON.parse(ev.target.result);
+      const data=parsed.data||parsed;
+      let count=0;
+      BACKUP_KEYS.forEach(k=>{ if(data[k]!=null){localStorage.setItem(k,data[k]);count++;} });
+      if(!count){alert('El archivo no contiene datos reconocibles de Alimentación.');return;}
+      alert('✓ Respaldo importado correctamente ('+count+' categorías). La página se recargará para mostrar tus datos.');
+      location.reload();
+    }catch(err){
+      alert('⚠ Archivo de respaldo inválido o dañado.');
     }
   };
   reader.readAsText(file);
+  e.target.value='';
 }
-
-function refrescarTodaLaPantalla() {
-  renderInventario(); renderPlan(); renderPresupuesto(); renderCalorias();
-}
+ 
  
 let weekOffset=0;
 function getWeekDates(offset){
@@ -540,7 +511,8 @@ function renderCalorias(){
   document.getElementById('cals-semana').innerHTML=html;
 }
  
-refrescarTodaLaPantalla();
+renderInventario();renderPresupuesto();renderCalorias();renderPlan();
 </script>
+<div class="save-toast" id="save-toast"><span class="dot"></span><span id="save-toast-text">Guardado</span></div>
 </body>
 </html>
