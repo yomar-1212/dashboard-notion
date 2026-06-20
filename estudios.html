@@ -25,7 +25,7 @@
   --sans:'Jost',-apple-system,sans-serif;
 }
 body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
-.shell{max-width:100%;margin:0 auto;padding:0 40px 80px}
+.shell{max-width:1080px;margin:0 auto;padding:0 24px 80px}
  
 /* TOPBAR */
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 0 18px;border-bottom:2px solid var(--border2);margin-bottom:22px;flex-wrap:wrap;gap:12px}
@@ -61,6 +61,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .f{display:flex;flex-direction:column;gap:5px}.f.wide{grid-column:1/-1}
 .fl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
 .f input,.f select,.f textarea{height:38px;border:1.5px solid var(--border2);border-radius:var(--r);padding:0 12px;font-size:12px;font-family:var(--sans);background:var(--bg);color:var(--text);transition:border-color .2s}
+.f input[type=file]{padding:7px 10px;font-size:11px;cursor:pointer}
+.f input[type=file]::file-selector-button{background:var(--orange-bg);color:var(--orange-dk);border:none;border-radius:5px;padding:5px 10px;font-size:10px;font-weight:600;font-family:var(--sans);cursor:pointer;margin-right:8px}
 .f textarea{height:72px;padding:10px 12px;resize:vertical}
 .f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--orange)}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
@@ -128,6 +130,21 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .s-tab.active,.s-tab:hover{background:var(--orange);color:#fff;border-color:var(--orange)}
  
 @media(max-width:640px){.shell{padding:0 14px 60px}.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}}
+ 
+/* DATA PERSISTENCE BAR */
+.databar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:9px 16px;margin-bottom:18px;font-size:11px;color:var(--text2)}
+.databar-status{display:flex;align-items:center;gap:6px}
+.databar-dot{width:7px;height:7px;border-radius:50%;background:#2a8a4a;flex-shrink:0;box-shadow:0 0 0 3px rgba(42,138,74,.15)}
+.databar-actions{display:flex;gap:8px;flex-wrap:wrap}
+.databar-btn{height:28px;display:inline-flex;align-items:center;padding:0 13px;border:1px solid var(--border2);border-radius:20px;background:var(--bg);color:var(--text2);font-size:11px;font-family:var(--sans);cursor:pointer;transition:all .15s;white-space:nowrap}
+.databar-btn:hover{background:var(--orange-bg);color:var(--orange-dk);border-color:var(--orange)}
+ 
+/* SAVE TOAST */
+.save-toast{position:fixed;bottom:22px;right:22px;background:#1b1f2e;color:#fff;padding:10px 18px;border-radius:30px;font-size:12px;font-weight:600;box-shadow:0 8px 26px rgba(0,0,0,.25);opacity:0;transform:translateY(12px);transition:opacity .25s,transform .25s;pointer-events:none;z-index:99999;display:flex;align-items:center;gap:7px;letter-spacing:.2px}
+.save-toast.show{opacity:1;transform:translateY(0)}
+.save-toast .dot{width:7px;height:7px;border-radius:50%;background:#4ade80}
+@media(max-width:600px){.save-toast{right:14px;bottom:14px;font-size:11px}}
+ 
 </style>
 </head>
 <body>
@@ -142,12 +159,23 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   <div style="width:60px"></div>
 </div>
  
+ 
+<div class="databar">
+  <span class="databar-status"><span class="databar-dot"></span>Tus datos se guardan automáticamente en este navegador</span>
+  <div class="databar-actions">
+    <button class="databar-btn" onclick="exportBackup()">💾 Exportar respaldo</button>
+    <label class="databar-btn" for="import-file" style="margin:0">📤 Importar respaldo</label>
+    <input type="file" id="import-file" accept="application/json" onchange="importBackup(event)" style="display:none">
+  </div>
+</div>
+ 
 <div class="nav">
   <button class="nav-btn active" onclick="goPage('dashboard',this)">Dashboard</button>
   <button class="nav-btn" onclick="goPage('todo',this)">To-Do</button>
   <button class="nav-btn" onclick="goPage('proyectos',this)">Proyectos</button>
   <button class="nav-btn" onclick="goPage('cursos',this)">Cursos</button>
   <button class="nav-btn" onclick="goPage('notas',this)">Apuntes por Corte</button>
+  <button class="nav-btn" onclick="goPage('calificaciones',this)">Calificaciones</button>
 </div>
  
 <!-- ── DASHBOARD ─────────────────────── -->
@@ -286,6 +314,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
       </div>
       <div class="f"><div class="fl">Fecha</div><input type="date" id="no-fecha"></div>
       <div class="f wide"><div class="fl">Contenido del apunte</div><textarea id="no-cuerpo" placeholder="Escribe aquí el apunte, fórmulas, resumen de clase..."></textarea></div>
+      <div class="f wide">
+        <div class="fl">Imágenes (opcional)</div>
+        <input type="file" id="no-imagenes" accept="image/*" multiple onchange="handleImageSelect(event)">
+        <div id="no-img-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px">Las imágenes se guardan en tu navegador. Evita archivos muy pesados.</div>
+      </div>
     </div>
     <div class="btn-row"><button class="btn-save green" onclick="addNota()">+ Guardar apunte</button></div>
   </div>
@@ -293,45 +327,99 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   <div id="notas-cortes"></div>
 </div>
  
-</div><!-- /shell -->
-<script>
-let todos = [];
-const API_URL = https://script.google.com/macros/s/AKfycbzs2ZFBiFMog4aR-4nOeCZJVN26hVRVotyJ83SpjKeyiF0h8D9wqNzjDFZdgh2RuAM/exec;
-
-// Esta función carga los datos de Google Sheets al abrir la página
-async function cargarDatos() {
-  const response = await fetch(API_URL);
-  const data = await response.json();
-  todos = data.map(row => ({ texto: row[0], materia: row[1], prior: row[2] }));
-  renderTodo(); // Esta función ya la tienes en tu código para pintar las tareas
-}
-
-// Ejecutar al cargar la página
-window.onload = cargarDatos;
+<!-- ── CALIFICACIONES ────────────────── -->
+<div id="page-calificaciones" class="page">
+  <div class="card">
+    <div class="card-title">Registrar Calificación</div>
+    <div class="fg">
+      <div class="f"><div class="fl">Materia</div><input type="text" id="ca-materia" placeholder="Ej: Cálculo I" list="materias-list4"><datalist id="materias-list4"></datalist></div>
+      <div class="f"><div class="fl">Evaluación</div><input type="text" id="ca-titulo" placeholder="Ej: Parcial 1, Quiz 2..."></div>
+      <div class="f"><div class="fl">Corte</div>
+        <select id="ca-corte">
+          <option value="1">Primer Corte</option>
+          <option value="2">Segundo Corte</option>
+          <option value="3">Tercer Corte</option>
+        </select>
+      </div>
+      <div class="f"><div class="fl">Nota esperada</div><input type="number" id="ca-esperada" placeholder="Ej: 4.5" min="0" step="0.1"></div>
+      <div class="f"><div class="fl">Nota obtenida</div><input type="number" id="ca-obtenida" placeholder="Ej: 4.2" min="0" step="0.1"></div>
+      <div class="f"><div class="fl">Fecha</div><input type="date" id="ca-fecha"></div>
+      <div class="f wide"><div class="fl">Comentarios (opcional)</div><input type="text" id="ca-notas" placeholder="Notas sobre esta evaluación..."></div>
+    </div>
+    <div class="btn-row"><button class="btn-save amber" onclick="addCalificacion()">+ Registrar nota</button></div>
+  </div>
+  <div class="kpi-row" id="cal-kpi"></div>
+  <div class="subject-tabs" id="cal-subject-tabs"></div>
+  <div id="cal-list"></div>
+</div>
  
-async function addNota() {
-  const nota = {
-    tipo: 'Nota',
-    materia: document.getElementById('no-materia').value,
-    titulo: document.getElementById('no-titulo').value,
-    corte: document.getElementById('no-corte').value,
-    fecha: document.getElementById('no-fecha').value,
-    contenido: document.getElementById('no-cuerpo').value
-  };
-
-  // Enviar a Google Sheets
-  await fetch("TU_URL_DE_APPS_SCRIPT_AQUÍ", {
-    method: "POST",
-    body: JSON.stringify(nota)
-  });
-
-  alert("¡Guardado en la nube!");
-  renderNotas(); // Refrescar vista
+</div><!-- /shell -->
+ 
+<div id="lightbox" onclick="closeLightbox()" style="display:none;position:fixed;inset:0;background:rgba(10,15,30,.88);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out;padding:24px">
+  <img id="lightbox-img" style="max-width:92vw;max-height:92vh;border-radius:10px;box-shadow:0 10px 50px rgba(0,0,0,.5)">
+</div>
+<script>
+let todos=[],proyectos=[],cursos=[],notas=[],calificaciones=[];
+try{todos=JSON.parse(localStorage.getItem('es_td')||'[]')}catch(e){}
+try{proyectos=JSON.parse(localStorage.getItem('es_pr')||'[]')}catch(e){}
+try{cursos=JSON.parse(localStorage.getItem('es_cu')||'[]')}catch(e){}
+try{notas=JSON.parse(localStorage.getItem('es_no')||'[]')}catch(e){}
+try{calificaciones=JSON.parse(localStorage.getItem('es_cal')||'[]')}catch(e){}
+ 
+function persist(){
+  try{
+    localStorage.setItem('es_td',JSON.stringify(todos));
+    localStorage.setItem('es_pr',JSON.stringify(proyectos));
+    localStorage.setItem('es_cu',JSON.stringify(cursos));
+    localStorage.setItem('es_no',JSON.stringify(notas));
+    localStorage.setItem('es_cal',JSON.stringify(calificaciones));
+    showSaveToast();
+  }catch(e){
+    alert('⚠ No se pudo guardar. El almacenamiento del navegador podría estar lleno (las imágenes ocupan espacio). Exporta un respaldo y libera espacio.');
+  }
 }
-
-// Ejemplo de cómo llamar a la función en tu código:
-// Cuando añades una tarea:
-// saveToDatabase('todos', {id: Date.now(), texto: 'Estudiar', ...});
+ 
+/* ── PERSISTENCIA Y RESPALDO ── */
+const BACKUP_KEYS = ['es_td', 'es_pr', 'es_cu', 'es_no', 'es_cal'];
+let toastTimeout;
+function showSaveToast(){
+  const t=document.getElementById('save-toast');if(!t)return;
+  t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout=setTimeout(()=>t.classList.remove('show'),1300);
+}
+function exportBackup(){
+  const data={};
+  BACKUP_KEYS.forEach(k=>{ try{const v=localStorage.getItem(k);if(v!=null)data[k]=v;}catch(e){} });
+  const payload={app:'estudios',label:'Estudios',exported:new Date().toISOString(),data};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`estudios-respaldo-${today()}.json`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showSaveToast();
+}
+function importBackup(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const parsed=JSON.parse(ev.target.result);
+      const data=parsed.data||parsed;
+      let count=0;
+      BACKUP_KEYS.forEach(k=>{ if(data[k]!=null){localStorage.setItem(k,data[k]);count++;} });
+      if(!count){alert('El archivo no contiene datos reconocibles de Estudios.');return;}
+      alert('✓ Respaldo importado correctamente ('+count+' categorías). La página se recargará para mostrar tus datos.');
+      location.reload();
+    }catch(err){
+      alert('⚠ Archivo de respaldo inválido o dañado.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+ 
 const today=()=>new Date().toISOString().slice(0,10);
 const fmt_d=d=>d?new Date(d+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'}):'';
 const PROJ_COLS=['#FF6D00','#0288D1','#5E35B1','#00897B','#FF8F00','#E53935'];
@@ -339,15 +427,42 @@ document.getElementById('cur-date').textContent=new Date().toLocaleDateString('e
 document.getElementById('td-fecha').value=today();
 document.getElementById('pr-fecha').value=today();
 document.getElementById('no-fecha').value=today();
+if(document.getElementById('ca-fecha'))document.getElementById('ca-fecha').value=today();
  
-function getMaterias(){return[...new Set([...todos.map(t=>t.materia),...proyectos.map(p=>p.materia),...notas.map(n=>n.materia)].filter(Boolean))]}
+function getMaterias(){return[...new Set([...todos.map(t=>t.materia),...proyectos.map(p=>p.materia),...notas.map(n=>n.materia),...calificaciones.map(c=>c.materia)].filter(Boolean))]}
 function updateDatalists(){
   const m=getMaterias();
-  ['materias-list','materias-list2','materias-list3'].forEach(id=>{
+  ['materias-list','materias-list2','materias-list3','materias-list4'].forEach(id=>{
     const dl=document.getElementById(id);if(!dl)return;
     dl.innerHTML=m.map(x=>`<option value="${x}">`).join('');
   });
 }
+ 
+function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').style.display='flex';}
+function closeLightbox(){document.getElementById('lightbox').style.display='none';}
+ 
+let pendingImages=[];
+function handleImageSelect(e){
+  const files=Array.from(e.target.files);
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      pendingImages.push({id:Date.now()+Math.random(),data:ev.target.result});
+      renderImgPreview();
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value='';
+}
+function renderImgPreview(){
+  const el=document.getElementById('no-img-preview');if(!el)return;
+  el.innerHTML=pendingImages.map(img=>`
+    <div style="position:relative;width:60px;height:60px;border-radius:8px;overflow:hidden;border:1.5px solid var(--border2)">
+      <img src="${img.data}" style="width:100%;height:100%;object-fit:cover">
+      <button onclick="removePendingImage(${img.id})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:9px;cursor:pointer;line-height:1;padding:0">✕</button>
+    </div>`).join('');
+}
+function removePendingImage(id){pendingImages=pendingImages.filter(i=>i.id!==id);renderImgPreview();}
  
 let charts={};
 function destroyC(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
@@ -357,8 +472,8 @@ function goPage(id,btn){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('on');btn.classList.add('active');
   updateDatalists();
-  const map={dashboard:renderDashboard,todo:renderTodo,proyectos:renderProyectos,cursos:()=>renderCursos('all'),notas:renderNotas};
-  map[id]?.();
+  const map={dashboard:renderDashboard,todo:renderTodo,proyectos:renderProyectos,cursos:()=>renderCursos('all'),notas:renderNotas,calificaciones:renderCalificaciones};
+  try{map[id]?.();}catch(e){console.warn('Render skipped:',e);}
 }
  
 /* ── DASHBOARD ── */
@@ -369,12 +484,15 @@ function renderDashboard(){
   const curComp=cursos.filter(c=>c.estado==='Completado');
   const curInProg=cursos.filter(c=>c.estado==='En progreso');
   
+  const avgGrade=calificaciones.length?(calificaciones.reduce((a,b)=>a+b.obtenida,0)/calificaciones.length).toFixed(1):null;
+ 
   document.getElementById('dash-kpi').innerHTML=`
     <div class="kpi" style="--kpi-color:var(--orange)"><div class="kpi-label">Tareas pendientes</div><div class="kpi-val">${pend.length}</div><div class="kpi-sub">${done.length} completadas</div></div>
     <div class="kpi" style="--kpi-color:var(--blue)"><div class="kpi-label">Proyectos activos</div><div class="kpi-val">${active.length}</div></div>
     <div class="kpi" style="--kpi-color:var(--purple)"><div class="kpi-label">Cursos en progreso</div><div class="kpi-val">${curInProg.length}</div></div>
     <div class="kpi" style="--kpi-color:var(--green)"><div class="kpi-label">Cursos completados</div><div class="kpi-val">${curComp.length}</div></div>
     <div class="kpi" style="--kpi-color:var(--amber)"><div class="kpi-label">Apuntes</div><div class="kpi-val">${notas.length}</div></div>
+    ${avgGrade?`<div class="kpi" style="--kpi-color:var(--red)"><div class="kpi-label">Promedio general</div><div class="kpi-val">${avgGrade}</div></div>`:''}
   `;
   
   const urgent=pend.filter(t=>t.prior==='alta').slice(0,5);
@@ -425,23 +543,6 @@ function addTodo(){
   const texto=document.getElementById('td-texto').value.trim();if(!texto)return;
   todos.push({id:Date.now(),texto,materia:document.getElementById('td-materia').value.trim(),fecha:document.getElementById('td-fecha').value,prior:document.getElementById('td-prior').value,tipo:document.getElementById('td-tipo').value,done:false});
   persist();document.getElementById('td-texto').value='';updateDatalists();renderTodo();
-
-async function addTodo() {
-  const nuevaTarea = {
-    texto: document.getElementById('td-texto').value,
-    materia: document.getElementById('td-materia').value,
-    prior: document.getElementById('td-prior').value
-  };
-
-  // Guardar en la nube
-  await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify(nuevaTarea)
-  });
-
-  // Refrescar la pantalla
-  await cargarDatos(); 
-}
 }
 function toggleTodo(id){const t=todos.find(t=>t.id===id);if(t)t.done=!t.done;persist();renderTodo();}
 function delTodo(id){todos=todos.filter(t=>t.id!==id);persist();renderTodo();}
@@ -546,9 +647,11 @@ function addNota(){
   const materia=document.getElementById('no-materia').value.trim();
   const titulo=document.getElementById('no-titulo').value.trim();
   const cuerpo=document.getElementById('no-cuerpo').value.trim();
-  if(!titulo&&!cuerpo)return;
-  notas.unshift({id:Date.now(),materia,titulo,cuerpo,corte:parseInt(document.getElementById('no-corte').value),fecha:document.getElementById('no-fecha').value});
-  persist();document.getElementById('no-titulo').value='';document.getElementById('no-cuerpo').value='';updateDatalists();renderNotas();
+  if(!titulo&&!cuerpo&&!pendingImages.length)return;
+  notas.unshift({id:Date.now(),materia,titulo,cuerpo,corte:parseInt(document.getElementById('no-corte').value),fecha:document.getElementById('no-fecha').value,images:pendingImages.map(i=>i.data)});
+  persist();document.getElementById('no-titulo').value='';document.getElementById('no-cuerpo').value='';
+  pendingImages=[];renderImgPreview();
+  updateDatalists();renderNotas();
 }
 function delNota(id){notas=notas.filter(n=>n.id!==id);persist();renderNotas();}
 function toggleCorte(id){const el=document.getElementById('cb-'+id);if(el)el.classList.toggle('open');}
@@ -586,6 +689,7 @@ function renderNotas(){
               <button class="xbtn" onclick="delNota(${n.id})">✕</button>
             </div>
             <div class="note-body">${n.cuerpo}</div>
+            ${n.images&&n.images.length?`<div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">${n.images.map(img=>`<img src="${img}" onclick="openLightbox('${img}')" style="width:72px;height:72px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1.5px solid var(--border2);transition:transform .15s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">`).join('')}</div>`:''}
             <div class="note-footer">
               <span style="font-size:10px;color:var(--text3)">${n.fecha}</span>
             </div>
@@ -603,8 +707,97 @@ function selectMat(m,btn){
   renderNotas();
 }
  
+/* ── CALIFICACIONES ── */
+function addCalificacion(){
+  const materia=document.getElementById('ca-materia').value.trim();
+  const titulo=document.getElementById('ca-titulo').value.trim();
+  const esperada=parseFloat(document.getElementById('ca-esperada').value);
+  const obtenida=parseFloat(document.getElementById('ca-obtenida').value);
+  if(!materia||!titulo||isNaN(obtenida)){alert('Completa al menos materia, evaluación y nota obtenida.');return;}
+  calificaciones.push({id:Date.now(),materia,titulo,corte:parseInt(document.getElementById('ca-corte').value),esperada:isNaN(esperada)?null:esperada,obtenida,fecha:document.getElementById('ca-fecha').value,notas:document.getElementById('ca-notas').value});
+  persist();['ca-titulo','ca-esperada','ca-obtenida','ca-notas'].forEach(id=>document.getElementById(id).value='');
+  updateDatalists();renderCalificaciones();
+}
+function delCalificacion(id){calificaciones=calificaciones.filter(c=>c.id!==id);persist();renderCalificaciones();}
+ 
+let selectedMatCal='all';
+function renderCalificaciones(){
+  const materias=[...new Set(calificaciones.map(c=>c.materia).filter(Boolean))];
+  document.getElementById('cal-subject-tabs').innerHTML=
+    `<button class="s-tab ${selectedMatCal==='all'?'active':''}" onclick="selectMatCal('all',this)">Todas</button>`+
+    materias.map(m=>`<button class="s-tab ${selectedMatCal===m?'active':''}" onclick="selectMatCal('${m}',this)">${m}</button>`).join('');
+  
+  const filtered=selectedMatCal==='all'?calificaciones:calificaciones.filter(c=>c.materia===selectedMatCal);
+  const withExpected=filtered.filter(c=>c.esperada!=null);
+  const avgObt=filtered.length?(filtered.reduce((a,b)=>a+b.obtenida,0)/filtered.length).toFixed(2):'—';
+  const avgExp=withExpected.length?(withExpected.reduce((a,b)=>a+b.esperada,0)/withExpected.length).toFixed(2):'—';
+  const above=withExpected.filter(c=>c.obtenida>=c.esperada).length;
+  const below=withExpected.filter(c=>c.obtenida<c.esperada).length;
+  document.getElementById('cal-kpi').innerHTML=`
+    <div class="kpi" style="--kpi-color:var(--green)"><div class="kpi-label">Promedio obtenido</div><div class="kpi-val">${avgObt}</div></div>
+    <div class="kpi" style="--kpi-color:var(--blue)"><div class="kpi-label">Promedio esperado</div><div class="kpi-val">${avgExp}</div></div>
+    <div class="kpi" style="--kpi-color:var(--orange)"><div class="kpi-label">Por encima de meta</div><div class="kpi-val">${above}</div></div>
+    <div class="kpi" style="--kpi-color:var(--red)"><div class="kpi-label">Por debajo de meta</div><div class="kpi-val">${below}</div></div>
+  `;
+  
+  if(!filtered.length){document.getElementById('cal-list').innerHTML=`<div class="empty"><span class="empty-icon">🎯</span>Sin calificaciones registradas.</div>`;return;}
+  
+  const CORTE_LABELS=['','Primer Corte','Segundo Corte','Tercer Corte'];
+  const CORTE_COLS=['','#FF6D00','#0288D1','#5E35B1'];
+  let html='';
+  [1,2,3].forEach(c=>{
+    const items=filtered.filter(x=>x.corte===c).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+    html+=`<div class="corte-section">
+      <div class="corte-header" onclick="toggleCorte('cal${c}')">
+        <div class="corte-title" style="color:${CORTE_COLS[c]}">${CORTE_LABELS[c]}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="tag" style="background:${CORTE_COLS[c]}22;color:${CORTE_COLS[c]}">${items.length} nota${items.length!==1?'s':''}</span>
+          <span style="color:var(--text3)">▾</span>
+        </div>
+      </div>
+      <div class="corte-body" id="cb-cal${c}">
+        ${items.length?items.map(it=>{
+          const diff=it.esperada!=null?Math.round((it.obtenida-it.esperada)*100)/100:null;
+          const metGoal=diff!=null?diff>=0:null;
+          return`<div class="note-card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+              <div>
+                ${it.materia?`<span class="tag tag-b" style="margin-bottom:5px;display:inline-flex">${it.materia}</span><br>`:''}
+                <div class="note-title">${it.titulo}</div>
+              </div>
+              <button class="xbtn" onclick="delCalificacion(${it.id})">✕</button>
+            </div>
+            <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
+              <div style="text-align:center">
+                <div style="font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em">Esperada</div>
+                <div style="font-family:var(--serif);font-size:19px;font-weight:700;color:var(--blue)">${it.esperada!=null?it.esperada:'—'}</div>
+              </div>
+              <div style="font-size:16px;color:var(--text3)">→</div>
+              <div style="text-align:center">
+                <div style="font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em">Obtenida</div>
+                <div style="font-family:var(--serif);font-size:19px;font-weight:700;color:${metGoal===null?'var(--text)':metGoal?'var(--green)':'var(--red)'}">${it.obtenida}</div>
+              </div>
+              ${diff!=null?`<span class="tag ${diff>=0?'tag-g':'tag-r'}">${diff>=0?'+':''}${diff}</span>`:''}
+            </div>
+            ${it.notas?`<div class="note-body">${it.notas}</div>`:''}
+            <div class="note-footer"><span style="font-size:10px;color:var(--text3)">${it.fecha||''}</span></div>
+          </div>`;
+        }).join(''):'<div class="empty" style="padding:20px">Sin notas en este corte.</div>'}
+      </div>
+    </div>`;
+  });
+  document.getElementById('cal-list').innerHTML=html;
+}
+function selectMatCal(m,btn){
+  selectedMatCal=m;
+  document.querySelectorAll('#cal-subject-tabs .s-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderCalificaciones();
+}
+ 
 // Init
-renderDashboard();renderTodo();renderProyectos();renderCursos('all');renderNotas();updateDatalists();
+[renderDashboard,renderTodo,renderProyectos,()=>renderCursos('all'),renderNotas,renderCalificaciones,updateDatalists].forEach(fn=>{try{fn();}catch(e){console.warn('Init step skipped:',e);}});
 </script>
+<div class="save-toast" id="save-toast"><span class="dot"></span><span id="save-toast-text">Guardado</span></div>
 </body>
 </html>
