@@ -295,11 +295,19 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
  
 </div><!-- /shell -->
 <script>
-let todos=[],proyectos=[],cursos=[],notas=[];
-try{todos=JSON.parse(localStorage.getItem('es_td')||'[]')}catch(e){}
-try{proyectos=JSON.parse(localStorage.getItem('es_pr')||'[]')}catch(e){}
-try{cursos=JSON.parse(localStorage.getItem('es_cu')||'[]')}catch(e){}
-try{notas=JSON.parse(localStorage.getItem('es_no')||'[]')}catch(e){}
+let todos = [];
+const API_URL = https://script.google.com/macros/s/AKfycbzs2ZFBiFMog4aR-4nOeCZJVN26hVRVotyJ83SpjKeyiF0h8D9wqNzjDFZdgh2RuAM/exec;
+
+// Esta función carga los datos de Google Sheets al abrir la página
+async function cargarDatos() {
+  const response = await fetch(API_URL);
+  const data = await response.json();
+  todos = data.map(row => ({ texto: row[0], materia: row[1], prior: row[2] }));
+  renderTodo(); // Esta función ya la tienes en tu código para pintar las tareas
+}
+
+// Ejecutar al cargar la página
+window.onload = cargarDatos;
  
 async function addNota() {
   const nota = {
@@ -417,6 +425,23 @@ function addTodo(){
   const texto=document.getElementById('td-texto').value.trim();if(!texto)return;
   todos.push({id:Date.now(),texto,materia:document.getElementById('td-materia').value.trim(),fecha:document.getElementById('td-fecha').value,prior:document.getElementById('td-prior').value,tipo:document.getElementById('td-tipo').value,done:false});
   persist();document.getElementById('td-texto').value='';updateDatalists();renderTodo();
+
+async function addTodo() {
+  const nuevaTarea = {
+    texto: document.getElementById('td-texto').value,
+    materia: document.getElementById('td-materia').value,
+    prior: document.getElementById('td-prior').value
+  };
+
+  // Guardar en la nube
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify(nuevaTarea)
+  });
+
+  // Refrescar la pantalla
+  await cargarDatos(); 
+}
 }
 function toggleTodo(id){const t=todos.find(t=>t.id===id);if(t)t.done=!t.done;persist();renderTodo();}
 function delTodo(id){todos=todos.filter(t=>t.id!==id);persist();renderTodo();}
