@@ -26,7 +26,7 @@
   --sans:'Jost',-apple-system,sans-serif;
 }
 body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
-.shell{max-width:100%;margin:0 auto;padding:0 40px 60px}
+.shell{max-width:1060px;margin:0 auto;padding:0 24px 60px}
  
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 0 16px;border-bottom:1px solid var(--border2);margin-bottom:20px;flex-wrap:wrap;gap:12px}
 .back-link{font-size:11px;color:var(--text2);text-decoration:none;letter-spacing:.4px}.back-link:hover{color:var(--orange)}
@@ -97,6 +97,21 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .racha{background:var(--orange-bg);color:var(--orange-dk);padding:3px 10px;border-radius:10px;font-size:10px;font-weight:500;display:inline-flex;align-items:center;gap:4px}
  
 @media(max-width:700px){.week-routine{grid-template-columns:repeat(4,1fr)}.shell{padding:0 14px 40px}.grid2{grid-template-columns:1fr}}
+ 
+/* DATA PERSISTENCE BAR */
+.databar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:9px 16px;margin-bottom:18px;font-size:11px;color:var(--text2)}
+.databar-status{display:flex;align-items:center;gap:6px}
+.databar-dot{width:7px;height:7px;border-radius:50%;background:#2a8a4a;flex-shrink:0;box-shadow:0 0 0 3px rgba(42,138,74,.15)}
+.databar-actions{display:flex;gap:8px;flex-wrap:wrap}
+.databar-btn{height:28px;display:inline-flex;align-items:center;padding:0 13px;border:1px solid var(--border2);border-radius:20px;background:var(--bg);color:var(--text2);font-size:11px;font-family:var(--sans);cursor:pointer;transition:all .15s;white-space:nowrap}
+.databar-btn:hover{background:var(--orange-bg);color:var(--orange-dk);border-color:var(--orange)}
+ 
+/* SAVE TOAST */
+.save-toast{position:fixed;bottom:22px;right:22px;background:#1b1f2e;color:#fff;padding:10px 18px;border-radius:30px;font-size:12px;font-weight:600;box-shadow:0 8px 26px rgba(0,0,0,.25);opacity:0;transform:translateY(12px);transition:opacity .25s,transform .25s;pointer-events:none;z-index:99999;display:flex;align-items:center;gap:7px;letter-spacing:.2px}
+.save-toast.show{opacity:1;transform:translateY(0)}
+.save-toast .dot{width:7px;height:7px;border-radius:50%;background:#4ade80}
+@media(max-width:600px){.save-toast{right:14px;bottom:14px;font-size:11px}}
+ 
 </style>
 </head>
 <body>
@@ -106,6 +121,16 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   <a class="back-link" href="hub.html">← Volver al Hub</a>
   <div><div class="app-title">Aseo y Cuidado Personal</div><div class="app-sub" id="cur-date"></div></div>
   <div></div>
+</div>
+ 
+ 
+<div class="databar">
+  <span class="databar-status"><span class="databar-dot"></span>Tus datos se guardan automáticamente en este navegador</span>
+  <div class="databar-actions">
+    <button class="databar-btn" onclick="exportBackup()">💾 Exportar respaldo</button>
+    <label class="databar-btn" for="import-file" style="margin:0">📤 Importar respaldo</label>
+    <input type="file" id="import-file" accept="application/json" onchange="importBackup(event)" style="display:none">
+  </div>
 </div>
  
 <div class="nav">
@@ -202,10 +227,57 @@ try{rutina=JSON.parse(localStorage.getItem('as_ru')||'{}')}catch(e){}
 try{metasP=JSON.parse(localStorage.getItem('as_mt')||'[]')}catch(e){}
  
 function persist(){
-  localStorage.setItem('as_pr',JSON.stringify(productos));
-  localStorage.setItem('as_ru',JSON.stringify(rutina));
-  localStorage.setItem('as_mt',JSON.stringify(metasP));
+  try{
+    localStorage.setItem('as_pr',JSON.stringify(productos));
+    localStorage.setItem('as_ru',JSON.stringify(rutina));
+    localStorage.setItem('as_mt',JSON.stringify(metasP));
+    showSaveToast();
+  }catch(e){
+    alert('⚠ No se pudo guardar. El almacenamiento del navegador podría estar lleno. Exporta un respaldo y libera espacio.');
+  }
 }
+ 
+/* ── PERSISTENCIA Y RESPALDO ── */
+const BACKUP_KEYS = ['as_pr', 'as_ru', 'as_mt'];
+let toastTimeout;
+function showSaveToast(){
+  const t=document.getElementById('save-toast');if(!t)return;
+  t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout=setTimeout(()=>t.classList.remove('show'),1300);
+}
+function exportBackup(){
+  const data={};
+  BACKUP_KEYS.forEach(k=>{ try{const v=localStorage.getItem(k);if(v!=null)data[k]=v;}catch(e){} });
+  const payload={app:'aseo',label:'Aseo y Cuidado Personal',exported:new Date().toISOString(),data};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`aseo-respaldo-${today()}.json`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showSaveToast();
+}
+function importBackup(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const parsed=JSON.parse(ev.target.result);
+      const data=parsed.data||parsed;
+      let count=0;
+      BACKUP_KEYS.forEach(k=>{ if(data[k]!=null){localStorage.setItem(k,data[k]);count++;} });
+      if(!count){alert('El archivo no contiene datos reconocibles de Aseo y Cuidado Personal.');return;}
+      alert('✓ Respaldo importado correctamente ('+count+' categorías). La página se recargará para mostrar tus datos.');
+      location.reload();
+    }catch(err){
+      alert('⚠ Archivo de respaldo inválido o dañado.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+ 
  
 function goPage(id,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
@@ -389,5 +461,6 @@ function renderMetas(){
  
 renderInventario();renderEjercicio();renderMetas();
 </script>
+<div class="save-toast" id="save-toast"><span class="dot"></span><span id="save-toast-text">Guardado</span></div>
 </body>
 </html>
